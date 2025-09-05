@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard - Smart Timetable Scheduler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .fade-in { animation: fadeIn 0.6s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .pulse-glow { animation: pulseGlow 2s infinite; }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 5px rgba(102, 126, 234, 0.5); } 50% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); } }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Navigation Header -->
+    <nav class="glass-effect border-b border-white/20 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chalkboard-teacher text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-white text-xl font-semibold">Faculty Dashboard</h1>
+                    <p class="text-white/70 text-sm">Smart Timetable Scheduler</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right text-white">
+                    <p class="font-medium" id="facultyName">Dr. John Smith</p>
+                    <p class="text-sm text-white/70" id="facultyRole">Faculty - Computer Science</p>
+                </div>
+                <button onclick="logout()" class="bg-red-500/20 hover:bg-red-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="glass-effect rounded-xl p-6 card-hover fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/70 text-sm">Total Subjects</p>
+                        <p class="text-white text-2xl font-bold" id="totalSubjects">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-book text-blue-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-effect rounded-xl p-6 card-hover fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/70 text-sm">Active Batches</p>
+                        <p class="text-white text-2xl font-bold" id="activeBatches">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-users text-green-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-effect rounded-xl p-6 card-hover fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/70 text-sm">Weekly Hours</p>
+                        <p class="text-white text-2xl font-bold" id="weeklyHours">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-purple-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-effect rounded-xl p-6 card-hover fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/70 text-sm">Leave Balance</p>
+                        <p class="text-white text-2xl font-bold" id="leaveBalance">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calendar-times text-orange-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Tabs -->
+        <div class="glass-effect rounded-xl overflow-hidden">
+            <!-- Tab Navigation -->
+            <div class="border-b border-white/20">
+                <nav class="flex space-x-8 px-6">
+                    <button onclick="switchTab('overview')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="overview-tab">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Overview
+                    </button>
+                    <button onclick="switchTab('timetable')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="timetable-tab">
+                        <i class="fas fa-calendar-alt mr-2"></i>Timetable
+                    </button>
+                    <button onclick="switchTab('subjects')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="subjects-tab">
+                        <i class="fas fa-book mr-2"></i>Subjects & Batches
+                    </button>
+                    <button onclick="switchTab('leave')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="leave-tab">
+                        <i class="fas fa-calendar-times mr-2"></i>Leave Management
+                    </button>
+                    <button onclick="switchTab('availability')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="availability-tab">
+                        <i class="fas fa-user-clock mr-2"></i>Availability
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Overview Tab -->
+                <div id="overview-content" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Recent Activities -->
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-white text-lg font-semibold mb-4">
+                                <i class="fas fa-history mr-2"></i>Recent Activities
+                            </h3>
+                            <div class="space-y-3" id="recentActivities">
+                                <div class="flex items-center space-x-3 text-white/80">
+                                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                    <span class="text-sm">New batch assigned: CS-2024-A</span>
+                                </div>
+                                <div class="flex items-center space-x-3 text-white/80">
+                                    <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                    <span class="text-sm">Timetable updated for next week</span>
+                                </div>
+                                <div class="flex items-center space-x-3 text-white/80">
+                                    <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                    <span class="text-sm">Leave request submitted</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Classes -->
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-white text-lg font-semibold mb-4">
+                                <i class="fas fa-clock mr-2"></i>Upcoming Classes
+                            </h3>
+                            <div class="space-y-3" id="upcomingClasses">
+                                <div class="flex items-center justify-between text-white/80">
+                                    <div>
+                                        <p class="font-medium">Data Structures</p>
+                                        <p class="text-sm text-white/60">CS-2024-A • LH-101</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium">10:00 AM</p>
+                                        <p class="text-xs text-white/60">Today</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between text-white/80">
+                                    <div>
+                                        <p class="font-medium">Algorithms</p>
+                                        <p class="text-sm text-white/60">CS-2024-B • LH-102</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium">2:00 PM</p>
+                                        <p class="text-xs text-white/60">Today</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timetable Tab -->
+                <div id="timetable-content" class="tab-content hidden">
+                    <div class="mb-6">
+                        <h3 class="text-white text-xl font-semibold mb-4">
+                            <i class="fas fa-calendar-alt mr-2"></i>My Timetable
+                        </h3>
+                        <div class="flex items-center space-x-4 mb-4">
+                            <select id="weekSelector" class="bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
+                                <option value="current">Current Week</option>
+                                <option value="next">Next Week</option>
+                                <option value="previous">Previous Week</option>
+                            </select>
+                            <button onclick="exportTimetable()" class="bg-blue-500/20 hover:bg-blue-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                                <i class="fas fa-download mr-2"></i>Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="glass-effect rounded-lg p-6">
+                        <div id="timetableGrid" class="overflow-x-auto">
+                            <!-- Timetable will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subjects & Batches Tab -->
+                <div id="subjects-content" class="tab-content hidden">
+                    <div class="mb-6">
+                        <h3 class="text-white text-xl font-semibold mb-4">
+                            <i class="fas fa-book mr-2"></i>My Subjects & Batches
+                        </h3>
+                        <div class="flex items-center space-x-4">
+                            <input type="text" id="subjectSearch" placeholder="Search subjects..." class="bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg px-4 py-2 w-64">
+                            <select id="batchFilter" class="bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
+                                <option value="">All Batches</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Subjects List -->
+                        <div class="glass-effect rounded-lg p-6">
+                            <h4 class="text-white text-lg font-semibold mb-4">Assigned Subjects</h4>
+                            <div id="subjectsList" class="space-y-3">
+                                <!-- Subjects will be loaded here -->
+                            </div>
+                        </div>
+                        <!-- Batches List -->
+                        <div class="glass-effect rounded-lg p-6">
+                            <h4 class="text-white text-lg font-semibold mb-4">Teaching Batches</h4>
+                            <div id="batchesList" class="space-y-3">
+                                <!-- Batches will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leave Management Tab -->
+                <div id="leave-content" class="tab-content hidden">
+                    <div class="mb-6">
+                        <h3 class="text-white text-xl font-semibold mb-4">
+                            <i class="fas fa-calendar-times mr-2"></i>Leave Management
+                        </h3>
+                        <button onclick="openLeaveRequestModal()" class="bg-green-500/20 hover:bg-green-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                            <i class="fas fa-plus mr-2"></i>Request Leave
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Leave Balance -->
+                        <div class="glass-effect rounded-lg p-6">
+                            <h4 class="text-white text-lg font-semibold mb-4">Leave Balance</h4>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center text-white">
+                                    <span>Annual Leave</span>
+                                    <span class="font-semibold">15 days</span>
+                                </div>
+                                <div class="flex justify-between items-center text-white">
+                                    <span>Sick Leave</span>
+                                    <span class="font-semibold">10 days</span>
+                                </div>
+                                <div class="flex justify-between items-center text-white">
+                                    <span>Personal Leave</span>
+                                    <span class="font-semibold">5 days</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Leave History -->
+                        <div class="glass-effect rounded-lg p-6">
+                            <h4 class="text-white text-lg font-semibold mb-4">Recent Leave Requests</h4>
+                            <div id="leaveHistory" class="space-y-3">
+                                <!-- Leave history will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Availability Tab -->
+                <div id="availability-content" class="tab-content hidden">
+                    <div class="mb-6">
+                        <h3 class="text-white text-xl font-semibold mb-4">
+                            <i class="fas fa-user-clock mr-2"></i>Availability Management
+                        </h3>
+                        <button onclick="openAvailabilityModal()" class="bg-blue-500/20 hover:bg-blue-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                            <i class="fas fa-edit mr-2"></i>Update Availability
+                        </button>
+                    </div>
+                    <div class="glass-effect rounded-lg p-6">
+                        <h4 class="text-white text-lg font-semibold mb-4">Weekly Availability</h4>
+                        <div id="availabilityGrid" class="grid grid-cols-7 gap-4">
+                            <!-- Availability grid will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Request Modal -->
+    <div id="leaveRequestModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-xl p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-lg font-semibold">Request Leave</h3>
+                <button onclick="closeLeaveRequestModal()" class="text-white/70 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="leaveRequestForm">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-white/70 text-sm mb-2">Leave Type</label>
+                        <select id="leaveType" class="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
+                            <option value="annual">Annual Leave</option>
+                            <option value="sick">Sick Leave</option>
+                            <option value="personal">Personal Leave</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-white/70 text-sm mb-2">Start Date</label>
+                        <input type="date" id="leaveStartDate" class="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-white/70 text-sm mb-2">End Date</label>
+                        <input type="date" id="leaveEndDate" class="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-white/70 text-sm mb-2">Reason</label>
+                        <textarea id="leaveReason" rows="3" class="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2" placeholder="Please provide a reason for your leave request..."></textarea>
+                    </div>
+                </div>
+                <div class="flex space-x-3 mt-6">
+                    <button type="button" onclick="closeLeaveRequestModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-green-500/20 hover:bg-green-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                        Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Availability Modal -->
+    <div id="availabilityModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-xl p-6 w-full max-w-2xl mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-lg font-semibold">Update Availability</h3>
+                <button onclick="closeAvailabilityModal()" class="text-white/70 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-7 gap-2 text-center text-white/70 text-sm">
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                    <div>Sun</div>
+                </div>
+                <div id="availabilityForm" class="grid grid-cols-7 gap-2">
+                    <!-- Availability form will be generated here -->
+                </div>
+            </div>
+            <div class="flex space-x-3 mt-6">
+                <button onclick="closeAvailabilityModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                    Cancel
+                </button>
+                <button onclick="saveAvailability()" class="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                    Save Availability
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">Operation successful!</span>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+        let currentTab = 'overview';
+        let facultyData = {};
+        let subjectsData = [];
+        let batchesData = [];
+        let timetableData = [];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFacultyData();
+            loadSubjectsAndBatches();
+            loadTimetable();
+            setupEventListeners();
+            updateStats();
+        });
+
+        // Load faculty data
+        async function loadFacultyData() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/faculty/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    facultyData = await response.json();
+                    updateFacultyInfo();
+                } else {
+                    // Fallback to demo data
+                    facultyData = {
+                        id: 1,
+                        name: 'Dr. John Smith',
+                        email: 'john.smith@university.edu',
+                        department: 'Computer Science',
+                        role: 'Faculty',
+                        subjects: ['Data Structures', 'Algorithms', 'Database Systems'],
+                        batches: ['CS-2024-A', 'CS-2024-B', 'CS-2024-C'],
+                        weekly_hours: 25,
+                        leave_balance: 15
+                    };
+                    updateFacultyInfo();
+                }
+            } catch (error) {
+                console.error('Error loading faculty data:', error);
+                // Use demo data
+                facultyData = {
+                    id: 1,
+                    name: 'Dr. John Smith',
+                    email: 'john.smith@university.edu',
+                    department: 'Computer Science',
+                    role: 'Faculty',
+                    subjects: ['Data Structures', 'Algorithms', 'Database Systems'],
+                    batches: ['CS-2024-A', 'CS-2024-B', 'CS-2024-C'],
+                    weekly_hours: 25,
+                    leave_balance: 15
+                };
+                updateFacultyInfo();
+            }
+        }
+
+        // Update faculty information display
+        function updateFacultyInfo() {
+            document.getElementById('facultyName').textContent = facultyData.name;
+            document.getElementById('facultyRole').textContent = `${facultyData.role} - ${facultyData.department}`;
+        }
+
+        // Load subjects and batches
+        async function loadSubjectsAndBatches() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/faculty/subjects-batches`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    subjectsData = data.subjects || [];
+                    batchesData = data.batches || [];
+                } else {
+                    // Fallback to demo data
+                    subjectsData = [
+                        { id: 1, name: 'Data Structures', code: 'CS201', credits: 4, weekly_hours: 6, type: 'theory' },
+                        { id: 2, name: 'Algorithms', code: 'CS202', credits: 4, weekly_hours: 6, type: 'theory' },
+                        { id: 3, name: 'Database Systems', code: 'CS203', credits: 3, weekly_hours: 4, type: 'theory' }
+                    ];
+                    batchesData = [
+                        { id: 1, name: 'CS-2024-A', strength: 45, semester: 3, department: 'Computer Science' },
+                        { id: 2, name: 'CS-2024-B', strength: 42, semester: 3, department: 'Computer Science' },
+                        { id: 3, name: 'CS-2024-C', strength: 38, semester: 3, department: 'Computer Science' }
+                    ];
+                }
+                renderSubjectsAndBatches();
+            } catch (error) {
+                console.error('Error loading subjects and batches:', error);
+                // Use demo data
+                subjectsData = [
+                    { id: 1, name: 'Data Structures', code: 'CS201', credits: 4, weekly_hours: 6, type: 'theory' },
+                    { id: 2, name: 'Algorithms', code: 'CS202', credits: 4, weekly_hours: 6, type: 'theory' },
+                    { id: 3, name: 'Database Systems', code: 'CS203', credits: 3, weekly_hours: 4, type: 'theory' }
+                ];
+                batchesData = [
+                    { id: 1, name: 'CS-2024-A', strength: 45, semester: 3, department: 'Computer Science' },
+                    { id: 2, name: 'CS-2024-B', strength: 42, semester: 3, department: 'Computer Science' },
+                    { id: 3, name: 'CS-2024-C', strength: 38, semester: 3, department: 'Computer Science' }
+                ];
+                renderSubjectsAndBatches();
+            }
+        }
+
+        // Render subjects and batches
+        function renderSubjectsAndBatches() {
+            // Render subjects
+            const subjectsList = document.getElementById('subjectsList');
+            subjectsList.innerHTML = subjectsData.map(subject => `
+                <div class="bg-white/10 rounded-lg p-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h5 class="text-white font-medium">${subject.name}</h5>
+                            <p class="text-white/70 text-sm">${subject.code} • ${subject.credits} credits</p>
+                            <p class="text-white/60 text-xs">${subject.weekly_hours} hours/week</p>
+                        </div>
+                        <span class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs">${subject.type}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Render batches
+            const batchesList = document.getElementById('batchesList');
+            batchesList.innerHTML = batchesData.map(batch => `
+                <div class="bg-white/10 rounded-lg p-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h5 class="text-white font-medium">${batch.name}</h5>
+                            <p class="text-white/70 text-sm">${batch.strength} students</p>
+                            <p class="text-white/60 text-xs">Semester ${batch.semester}</p>
+                        </div>
+                        <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs">Active</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load timetable
+        async function loadTimetable() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/faculty/timetable`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    timetableData = await response.json();
+                } else {
+                    // Fallback to demo data
+                    timetableData = [
+                        { day: 'Monday', time: '09:00-10:00', subject: 'Data Structures', batch: 'CS-2024-A', classroom: 'LH-101' },
+                        { day: 'Monday', time: '10:00-11:00', subject: 'Data Structures', batch: 'CS-2024-A', classroom: 'LH-101' },
+                        { day: 'Monday', time: '11:00-12:00', subject: 'Algorithms', batch: 'CS-2024-B', classroom: 'LH-102' },
+                        { day: 'Tuesday', time: '09:00-10:00', subject: 'Database Systems', batch: 'CS-2024-C', classroom: 'LH-103' },
+                        { day: 'Tuesday', time: '10:00-11:00', subject: 'Algorithms', batch: 'CS-2024-A', classroom: 'LH-101' },
+                        { day: 'Wednesday', time: '09:00-10:00', subject: 'Data Structures', batch: 'CS-2024-B', classroom: 'LH-102' },
+                        { day: 'Wednesday', time: '10:00-11:00', subject: 'Database Systems', batch: 'CS-2024-A', classroom: 'LH-103' },
+                        { day: 'Thursday', time: '09:00-10:00', subject: 'Algorithms', batch: 'CS-2024-C', classroom: 'LH-101' },
+                        { day: 'Thursday', time: '10:00-11:00', subject: 'Data Structures', batch: 'CS-2024-C', classroom: 'LH-102' },
+                        { day: 'Friday', time: '09:00-10:00', subject: 'Database Systems', batch: 'CS-2024-B', classroom: 'LH-103' }
+                    ];
+                }
+                renderTimetable();
+            } catch (error) {
+                console.error('Error loading timetable:', error);
+                // Use demo data
+                timetableData = [
+                    { day: 'Monday', time: '09:00-10:00', subject: 'Data Structures', batch: 'CS-2024-A', classroom: 'LH-101' },
+                    { day: 'Monday', time: '10:00-11:00', subject: 'Data Structures', batch: 'CS-2024-A', classroom: 'LH-101' },
+                    { day: 'Monday', time: '11:00-12:00', subject: 'Algorithms', batch: 'CS-2024-B', classroom: 'LH-102' },
+                    { day: 'Tuesday', time: '09:00-10:00', subject: 'Database Systems', batch: 'CS-2024-C', classroom: 'LH-103' },
+                    { day: 'Tuesday', time: '10:00-11:00', subject: 'Algorithms', batch: 'CS-2024-A', classroom: 'LH-101' },
+                    { day: 'Wednesday', time: '09:00-10:00', subject: 'Data Structures', batch: 'CS-2024-B', classroom: 'LH-102' },
+                    { day: 'Wednesday', time: '10:00-11:00', subject: 'Database Systems', batch: 'CS-2024-A', classroom: 'LH-103' },
+                    { day: 'Thursday', time: '09:00-10:00', subject: 'Algorithms', batch: 'CS-2024-C', classroom: 'LH-101' },
+                    { day: 'Thursday', time: '10:00-11:00', subject: 'Data Structures', batch: 'CS-2024-C', classroom: 'LH-102' },
+                    { day: 'Friday', time: '09:00-10:00', subject: 'Database Systems', batch: 'CS-2024-B', classroom: 'LH-103' }
+                ];
+                renderTimetable();
+            }
+        }
+
+        // Render timetable
+        function renderTimetable() {
+            const timetableGrid = document.getElementById('timetableGrid');
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const timeSlots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'];
+
+            let html = '<table class="w-full text-white">';
+            html += '<thead><tr><th class="p-3 text-left">Time</th>';
+            days.forEach(day => {
+                html += `<th class="p-3 text-center">${day}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            timeSlots.forEach(timeSlot => {
+                html += `<tr><td class="p-3 font-medium">${timeSlot}</td>`;
+                days.forEach(day => {
+                    const classData = timetableData.find(item => item.day === day && item.time === timeSlot);
+                    if (classData) {
+                        html += `<td class="p-3 text-center">
+                            <div class="bg-blue-500/20 rounded-lg p-2">
+                                <div class="font-medium text-sm">${classData.subject}</div>
+                                <div class="text-xs text-white/70">${classData.batch}</div>
+                                <div class="text-xs text-white/60">${classData.classroom}</div>
+                            </div>
+                        </td>`;
+                    } else {
+                        html += '<td class="p-3 text-center text-white/30">Free</td>';
+                    }
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            timetableGrid.innerHTML = html;
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalSubjects').textContent = subjectsData.length;
+            document.getElementById('activeBatches').textContent = batchesData.length;
+            document.getElementById('weeklyHours').textContent = facultyData.weekly_hours || 0;
+            document.getElementById('leaveBalance').textContent = facultyData.leave_balance || 0;
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-400', 'text-white');
+                btn.classList.add('border-transparent', 'text-white/70');
+            });
+
+            // Show selected tab content
+            document.getElementById(`${tabName}-content`).classList.remove('hidden');
+
+            // Add active class to selected tab
+            const activeTab = document.getElementById(`${tabName}-tab`);
+            activeTab.classList.remove('border-transparent', 'text-white/70');
+            activeTab.classList.add('border-blue-400', 'text-white');
+
+            currentTab = tabName;
+        }
+
+        // Leave request modal
+        function openLeaveRequestModal() {
+            document.getElementById('leaveRequestModal').classList.remove('hidden');
+        }
+
+        function closeLeaveRequestModal() {
+            document.getElementById('leaveRequestModal').classList.add('hidden');
+            document.getElementById('leaveRequestForm').reset();
+        }
+
+        // Availability modal
+        function openAvailabilityModal() {
+            document.getElementById('availabilityModal').classList.remove('hidden');
+            generateAvailabilityForm();
+        }
+
+        function closeAvailabilityModal() {
+            document.getElementById('availabilityModal').classList.add('hidden');
+        }
+
+        // Generate availability form
+        function generateAvailabilityForm() {
+            const availabilityForm = document.getElementById('availabilityForm');
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const timeSlots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'];
+
+            let html = '';
+            timeSlots.forEach(timeSlot => {
+                days.forEach(day => {
+                    html += `
+                        <div class="text-center">
+                            <input type="checkbox" id="${day}-${timeSlot}" class="w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded">
+                            <label for="${day}-${timeSlot}" class="text-white/70 text-xs block mt-1">${timeSlot}</label>
+                        </div>
+                    `;
+                });
+            });
+            availabilityForm.innerHTML = html;
+        }
+
+        // Save availability
+        function saveAvailability() {
+            const availability = {};
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const timeSlots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'];
+
+            days.forEach(day => {
+                availability[day] = [];
+                timeSlots.forEach(timeSlot => {
+                    const checkbox = document.getElementById(`${day}-${timeSlot}`);
+                    if (checkbox.checked) {
+                        availability[day].push(timeSlot);
+                    }
+                });
+            });
+
+            // Here you would save to API
+            console.log('Availability saved:', availability);
+            showToast('Availability updated successfully!');
+            closeAvailabilityModal();
+        }
+
+        // Export timetable
+        function exportTimetable() {
+            const data = timetableData;
+            const csvContent = generateTimetableCSV(data);
+            downloadFile(csvContent, 'faculty-timetable.csv', 'text/csv');
+            showToast('Timetable exported successfully!');
+        }
+
+        // Generate CSV for timetable
+        function generateTimetableCSV(data) {
+            const headers = ['Day', 'Time', 'Subject', 'Batch', 'Classroom'];
+            const csvContent = [
+                headers.join(','),
+                ...data.map(item => [
+                    item.day,
+                    item.time,
+                    item.subject,
+                    item.batch,
+                    item.classroom
+                ].join(','))
+            ].join('\n');
+            return csvContent;
+        }
+
+        // Download file utility
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Leave request form
+            document.getElementById('leaveRequestForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const leaveData = {
+                    type: document.getElementById('leaveType').value,
+                    start_date: document.getElementById('leaveStartDate').value,
+                    end_date: document.getElementById('leaveEndDate').value,
+                    reason: document.getElementById('leaveReason').value
+                };
+
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${API_BASE_URL}/faculty/leave-request`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(leaveData)
+                    });
+
+                    if (response.ok) {
+                        showToast('Leave request submitted successfully!');
+                        closeLeaveRequestModal();
+                    } else {
+                        showToast('Failed to submit leave request. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error submitting leave request:', error);
+                    showToast('Error submitting leave request. Please try again.');
+                }
+            });
+
+            // Week selector
+            document.getElementById('weekSelector').addEventListener('change', function() {
+                loadTimetable();
+            });
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

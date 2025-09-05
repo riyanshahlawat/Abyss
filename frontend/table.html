@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Timetable Generator</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  nav { margin-bottom: 20px; }
+  nav button { margin-right: 10px; padding: 8px 16px; cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 40px; }
+  th, td { border: 1px solid #999; padding: 8px; text-align: center; }
+  th { background: #f4f4f4; }
+  h2 { margin-top: 40px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<h1>Timetable Generator</h1>
+
+<nav>
+  <button onclick="showTab('students')">Students</button>
+  <button onclick="showTab('teachers')">Teachers</button>
+</nav>
+
+<!-- Student Tab -->
+<div id="studentsTab">
+  <h2>Batch-wise Timetables</h2>
+  <div id="students"></div>
+</div>
+
+<!-- Teacher Tab -->
+<div id="teachersTab" class="hidden">
+  <h2>Faculty-wise Timetables</h2>
+  <div id="teachers"></div>
+</div>
+
+<script>
+async function fetchTable(table) {
+  const res = await fetch(`http://127.0.0.1:5000/read/${table}`);
+  return await res.json();
+}
+
+async function fetchDataAndGenerate() {
+  const batches = await fetchTable("batches");
+  const teachers = await fetchTable("users");
+  const classrooms = await fetchTable("classrooms");
+  const subjects = await fetchTable("subjects");
+  const faculty_map = await fetchTable("faculty_subject_map");
+
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+  const times = ["10:00-11:00","11:00-12:00","12:00-1:00","1:00-2:00","2:00-3:00","3:00-4:00"];
+
+  // Map teacher to subjects
+  const teacherSubjects = {};
+  faculty_map.forEach(f => {
+    if (!teacherSubjects[f.faculty_id]) teacherSubjects[f.faculty_id] = [];
+    teacherSubjects[f.faculty_id].push(f.subject_id);
+  });
+
+  // Generate timetable
+  const timetable = [];
+  batches.forEach(batch => {
+    const batchId = batch.id;
+    const batchSize = batch.size;
+
+    subjects.forEach(subject => {
+      let hoursNeeded = subject.weekly_hours;
+      let assignedSlots = 0;
+
+      const availableTeachers = teachers.filter(t => teacherSubjects[t.id] && teacherSubjects[t.id].includes(subject.id));
+
+      while (assignedSlots < hoursNeeded) {
+        const day = days[Math.floor(Math.random() * days.length)];
+        const time = times[Math.floor(Math.random() * times.length)];
+
+        if (timetable.some(s => s.batch_id === batchId && s.day === day && s.time === time)) continue;
+
+        const freeTeachers = availableTeachers.filter(t => !timetable.some(s => s.faculty_id === t.id && s.day===day && s.time===time));
+        if (freeTeachers.length === 0) break;
+
+        const teacher = freeTeachers[Math.floor(Math.random() * freeTeachers.length)];
+
+        const freeRooms = classrooms.filter(c => c.capacity >= batchSize && !timetable.some(s => s.classroom_id===c.id && s.day===day && s.time===time));
+        if (freeRooms.length === 0) break;
+
+        const room = freeRooms[Math.floor(Math.random() * freeRooms.length)];
+
+        timetable.push({
+          batch_id: batchId,
+          faculty_id: teacher.id,
+          classroom_id: room.id,
+          subject_id: subject.id,
+          day: day,
+          time: time
+        });
+
+        assignedSlots++;
+      }
+    });
+  });
+
+  return { timetable, batches, teachers, classrooms, subjects };
+}
+
+function renderTimetable(timetable, batches, teachers, classrooms, subjects, forTeacher=false) {
+  const container = document.getElementById(forTeacher ? "teachers" : "students");
+  container.innerHTML = "";
+
+  const entityList = forTeacher ? teachers.filter(t => t.role==="faculty") : batches;
+  const entityMap = {};
+  (forTeacher ? batches : teachers).forEach(e => entityMap[e.id] = e.name);
+
+  const classroomMap = {};
+  classrooms.forEach(c => classroomMap[c.id] = c.name);
+
+  const subjectMap = {};
+  subjects.forEach(s => subjectMap[s.id] = s.name);
+
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+  const times = ["10:00-11:00","11:00-12:00","12:00-1:00","1:00-2:00","2:00-3:00","3:00-4:00"];
+
+  entityList.forEach(e => {
+    container.innerHTML += `<h3>${e.name}</h3>`;
+    let html = "<table><tr><th>Day / Time</th>";
+    times.forEach(t => html += `<th>${t}</th>`); html += "</tr>";
+
+    days.forEach(d => {
+      html += `<tr><th>${d}</th>`;
+      times.forEach(t => {
+        const slot = timetable.find(s =>
+          (!forTeacher && s.batch_id===e.id && s.day===d && s.time===t) ||
+          (forTeacher && s.faculty_id===e.id && s.day===d && s.time===t)
+        );
+        if (slot) {
+          html += `<td>${subjectMap[slot.subject_id]}<br>${classroomMap[slot.classroom_id]}<br>${entityMap[forTeacher ? slot.batch_id : slot.faculty_id]}</td>`;
+        } else {
+          html += "<td>-</td>";
+        }
+      });
+      html += "</tr>";
+    });
+
+    html += "</table>";
+    container.innerHTML += html;
+  });
+}
+
+function showTab(tab) {
+  document.getElementById("studentsTab").classList.add("hidden");
+  document.getElementById("teachersTab").classList.add("hidden");
+  if (tab === "students") document.getElementById("studentsTab").classList.remove("hidden");
+  if (tab === "teachers") document.getElementById("teachersTab").classList.remove("hidden");
+}
+
+// Run generator
+(async () => {
+  const { timetable, batches, teachers, classrooms, subjects } = await fetchDataAndGenerate();
+  renderTimetable(timetable, batches, teachers, classrooms, subjects, false); // students
+  renderTimetable(timetable, batches, teachers, classrooms, subjects, true);  // teachers
+})();
+</script>
+</body>
+</html>

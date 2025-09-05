@@ -1,0 +1,2733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Smart Classroom & Timetable Scheduler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-right: 3px solid #3b82f6;
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            to { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Sidebar Navigation -->
+    <div class="flex h-screen">
+        <div class="sidebar w-64 p-6">
+            <!-- Logo -->
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3">
+                    <i class="fas fa-crown text-blue-600 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold text-lg">Admin Panel</h1>
+                    <p class="text-blue-100 text-sm">Smart Scheduler</p>
+                </div>
+            </div>
+            
+            <!-- User Info -->
+            <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold" id="adminName">Admin User</p>
+                        <p class="text-blue-100 text-sm">Administrator</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="space-y-2">
+                <a href="#" onclick="showSection('dashboard')" class="nav-item active flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" onclick="showSection('timetables')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    Timetables
+                </a>
+                <a href="#" onclick="showSection('users')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-users mr-3"></i>
+                    Users
+                </a>
+                <a href="#" onclick="showSection('classrooms')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-building mr-3"></i>
+                    Classrooms
+                </a>
+                <a href="#" onclick="showSection('subjects')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-book mr-3"></i>
+                    Subjects
+                </a>
+                <a href="#" onclick="showSection('batches')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-graduation-cap mr-3"></i>
+                    Batches
+                </a>
+                <a href="#" onclick="showSection('analytics')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Analytics
+                </a>
+                <a href="#" onclick="showSection('settings')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    Settings
+                </a>
+            </nav>
+            
+            <!-- Logout -->
+            <div class="mt-auto pt-6">
+                <button onclick="logout()" class="w-full flex items-center p-3 text-red-200 hover:text-red-100 hover:bg-red-500 hover:bg-opacity-20 rounded-lg transition-all">
+                    <i class="fas fa-sign-out-alt mr-3"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="glass-card p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800" id="pageTitle">Dashboard Overview</h2>
+                        <p class="text-gray-600" id="pageDescription">Welcome to the Smart Scheduler Admin Panel</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Last updated</p>
+                            <p class="font-semibold text-gray-800" id="lastUpdated">Just now</p>
+                        </div>
+                        <button onclick="refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <div class="px-6">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="stat-card glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total Users</p>
+                                    <p class="text-3xl font-bold text-gray-800" id="totalUsers">-</p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Active Timetables</p>
+                                    <p class="text-3xl font-bold text-gray-800" id="activeTimetables">-</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-check text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Classrooms</p>
+                                    <p class="text-3xl font-bold text-gray-800" id="totalClassrooms">-</p>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-building text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Subjects</p>
+                                    <p class="text-3xl font-bold text-gray-800" id="totalSubjects">-</p>
+                                </div>
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-book text-orange-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="glass-card rounded-xl p-6 mb-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <button onclick="generateTimetable()" class="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg hover:shadow-lg transition-all pulse-glow">
+                                <i class="fas fa-magic text-2xl mb-2"></i>
+                                <p class="font-semibold">Generate Timetable</p>
+                                <p class="text-sm opacity-90">Create optimized schedules</p>
+                            </button>
+                            
+                            <button onclick="showSection('users')" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg hover:shadow-lg transition-all">
+                                <i class="fas fa-user-plus text-2xl mb-2"></i>
+                                <p class="font-semibold">Add User</p>
+                                <p class="text-sm opacity-90">Create new accounts</p>
+                            </button>
+                            
+                            <button onclick="openExportModal()" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg hover:shadow-lg transition-all">
+                                <i class="fas fa-download text-2xl mb-2"></i>
+                                <p class="font-semibold">Export Data</p>
+                                <p class="text-sm opacity-90">Download reports</p>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h3>
+                        <div id="recentActivity" class="space-y-3">
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-user-plus text-blue-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-800">New user registered</p>
+                                    <p class="text-xs text-gray-600">2 minutes ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-calendar-plus text-green-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-800">Timetable generated</p>
+                                    <p class="text-xs text-gray-600">5 minutes ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Timetables Section -->
+            <div id="timetables" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Timetable Management</h3>
+                            <div class="flex space-x-3">
+                                <button onclick="generateTimetable()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Generate New
+                                </button>
+                                <button onclick="viewTimetable()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>View Timetable
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="timetableList">
+                            <!-- Timetable cards will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Users Section -->
+            <div id="users" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">User Management</h3>
+                            <div class="flex space-x-3">
+                                <button onclick="addUser()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add User
+                                </button>
+                                <button onclick="bulkDeleteUsers()" id="bulkDeleteUsersBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors hidden">
+                                    <i class="fas fa-trash mr-2"></i>Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search and Filter -->
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
+                                <input type="text" id="userSearch" placeholder="Search by name or email..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Role</label>
+                                <select id="userRoleFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Roles</option>
+                                    <option value="admin">Administrator</option>
+                                    <option value="faculty">Faculty</option>
+                                    <option value="student">Student</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="clearUserFilters()" class="w-full bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                                    <i class="fas fa-times mr-2"></i>Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">
+                                            <input type="checkbox" id="selectAllUsers" onchange="toggleAllUsers()" class="rounded border-gray-300">
+                                        </th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Role</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <!-- Users will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Classrooms Section -->
+            <div id="classrooms" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Classroom Management</h3>
+                            <div class="flex space-x-3">
+                                <button onclick="addClassroom()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add Classroom
+                                </button>
+                                <button onclick="bulkDeleteClassrooms()" id="bulkDeleteClassroomsBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors hidden">
+                                    <i class="fas fa-trash mr-2"></i>Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search and Filter -->
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Search Classrooms</label>
+                                <input type="text" id="classroomSearch" placeholder="Search by name..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Type</label>
+                                <select id="classroomTypeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Types</option>
+                                    <option value="Lecture Hall">Lecture Hall</option>
+                                    <option value="Laboratory">Laboratory</option>
+                                    <option value="Seminar Room">Seminar Room</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="clearClassroomFilters()" class="w-full bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                                    <i class="fas fa-times mr-2"></i>Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">
+                                            <input type="checkbox" id="selectAllClassrooms" onchange="toggleAllClassrooms()" class="rounded border-gray-300">
+                                        </th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Capacity</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="classroomsTable">
+                                    <!-- Classrooms will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Subjects Section -->
+            <div id="subjects" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Subject Management</h3>
+                            <div class="flex space-x-3">
+                                <button onclick="addSubject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add Subject
+                                </button>
+                                <button onclick="bulkDeleteSubjects()" id="bulkDeleteSubjectsBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors hidden">
+                                    <i class="fas fa-trash mr-2"></i>Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search and Filter -->
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Search Subjects</label>
+                                <input type="text" id="subjectSearch" placeholder="Search by name..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Credits</label>
+                                <select id="subjectCreditsFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Credits</option>
+                                    <option value="3">3 Credits</option>
+                                    <option value="4">4 Credits</option>
+                                    <option value="6">6 Credits</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="clearSubjectFilters()" class="w-full bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                                    <i class="fas fa-times mr-2"></i>Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">
+                                            <input type="checkbox" id="selectAllSubjects" onchange="toggleAllSubjects()" class="rounded border-gray-300">
+                                        </th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Credits</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="subjectsTable">
+                                    <!-- Subjects will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Batches Section -->
+            <div id="batches" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Batch Management</h3>
+                            <div class="flex space-x-3">
+                                <button onclick="addBatch()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add Batch
+                                </button>
+                                <button onclick="bulkDeleteBatches()" id="bulkDeleteBatchesBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors hidden">
+                                    <i class="fas fa-trash mr-2"></i>Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search and Filter -->
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Search Batches</label>
+                                <input type="text" id="batchSearch" placeholder="Search by name..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Type</label>
+                                <select id="batchTypeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Types</option>
+                                    <option value="UG">Undergraduate</option>
+                                    <option value="PG">Postgraduate</option>
+                                    <option value="PhD">PhD</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="clearBatchFilters()" class="w-full bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                                    <i class="fas fa-times mr-2"></i>Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">
+                                            <input type="checkbox" id="selectAllBatches" onchange="toggleAllBatches()" class="rounded border-gray-300">
+                                        </th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Size</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="batchesTable">
+                                    <!-- Batches will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analytics Section -->
+            <div id="analytics" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Analytics & Reports</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h4 class="font-semibold text-gray-800 mb-4">Resource Utilization</h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Classroom Usage</span>
+                                        <span class="font-semibold text-gray-800">85%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h4 class="font-semibold text-gray-800 mb-4">Faculty Workload</h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Average Hours/Week</span>
+                                        <span class="font-semibold text-gray-800">24.5</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Max Hours/Week</span>
+                                        <span class="font-semibold text-gray-800">32</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Section -->
+            <div id="settings" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">System Settings</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">University Name</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="Demo University">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Academic Year</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="2024-2025">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Default Time Slots</label>
+                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" rows="4">9:00-10:00
+10:00-11:00
+11:00-12:00
+12:00-1:00
+2:00-3:00
+3:00-4:00</textarea>
+                            </div>
+                            <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-4 max-w-sm">
+            <div class="flex items-center">
+                <div id="toastIcon" class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <p id="toastMessage" class="text-sm font-medium text-gray-900"></p>
+                </div>
+                <button onclick="hideToast()" class="ml-4 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="addUserModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="userModalTitle" class="text-xl font-bold text-gray-800">Add New User</h3>
+                    <button onclick="closeModal('addUserModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="addUserForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                        <input type="text" id="userName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="userEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="userPassword" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <select id="userRole" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Role</option>
+                            <option value="admin">Administrator</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" id="userSubmitBtn" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Add User
+                        </button>
+                        <button type="button" onclick="closeModal('addUserModal')" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Classroom Modal -->
+    <div id="addClassroomModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="classroomModalTitle" class="text-xl font-bold text-gray-800">Add New Classroom</h3>
+                    <button onclick="closeModal('addClassroomModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="addClassroomForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Classroom Name</label>
+                        <input type="text" id="classroomName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
+                        <input type="number" id="classroomCapacity" required min="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                        <select id="classroomType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Type</option>
+                            <option value="lecture">Lecture Hall</option>
+                            <option value="lab">Laboratory</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" id="classroomSubmitBtn" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Add Classroom
+                        </button>
+                        <button type="button" onclick="closeModal('addClassroomModal')" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Subject Modal -->
+    <div id="addSubjectModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="subjectModalTitle" class="text-xl font-bold text-gray-800">Add New Subject</h3>
+                    <button onclick="closeModal('addSubjectModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="addSubjectForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject Name</label>
+                        <input type="text" id="subjectName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Credits</label>
+                        <input type="number" id="subjectCredits" required min="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Weekly Hours</label>
+                        <input type="number" id="subjectHours" required min="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                        <input type="text" id="subjectDepartment" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" id="subjectSubmitBtn" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Add Subject
+                        </button>
+                        <button type="button" onclick="closeModal('addSubjectModal')" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Batch Modal -->
+    <div id="addBatchModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="batchModalTitle" class="text-xl font-bold text-gray-800">Add New Batch</h3>
+                    <button onclick="closeModal('addBatchModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="addBatchForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Batch Name</label>
+                        <input type="text" id="batchName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Batch Size</label>
+                        <input type="number" id="batchSize" required min="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                        <select id="batchType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Type</option>
+                            <option value="UG">Undergraduate</option>
+                            <option value="PG">Postgraduate</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                        <input type="text" id="batchDepartment" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" id="batchSubmitBtn" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Add Batch
+                        </button>
+                        <button type="button" onclick="closeModal('addBatchModal')" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Export Data</h3>
+                    <button onclick="closeModal('exportModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Export Type Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Select Data to Export</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="exportType" value="users" class="mr-3" checked>
+                                <span class="text-gray-700">Users (${allUsers.length} records)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="exportType" value="classrooms" class="mr-3">
+                                <span class="text-gray-700">Classrooms (${allClassrooms.length} records)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="exportType" value="subjects" class="mr-3">
+                                <span class="text-gray-700">Subjects (${allSubjects.length} records)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="exportType" value="batches" class="mr-3">
+                                <span class="text-gray-700">Batches (${allBatches.length} records)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="exportType" value="all" class="mr-3">
+                                <span class="text-gray-700">All Data (Complete Report)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Export Format Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Export Format</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center justify-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="exportFormat" value="csv" class="mr-2" checked>
+                                <i class="fas fa-file-csv text-green-600 mr-2"></i>
+                                <span class="text-sm">CSV</span>
+                            </label>
+                            <label class="flex items-center justify-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="exportFormat" value="excel" class="mr-2">
+                                <i class="fas fa-file-excel text-green-600 mr-2"></i>
+                                <span class="text-sm">Excel</span>
+                            </label>
+                            <label class="flex items-center justify-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="exportFormat" value="json" class="mr-2">
+                                <i class="fas fa-file-code text-blue-600 mr-2"></i>
+                                <span class="text-sm">JSON</span>
+                            </label>
+                            <label class="flex items-center justify-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="exportFormat" value="pdf" class="mr-2">
+                                <i class="fas fa-file-pdf text-red-600 mr-2"></i>
+                                <span class="text-sm">PDF</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Export Options -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Export Options</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="includeHeaders" class="mr-3" checked>
+                                <span class="text-gray-700">Include Headers</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="includeTimestamps" class="mr-3" checked>
+                                <span class="text-gray-700">Include Export Timestamp</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filteredData" class="mr-3">
+                                <span class="text-gray-700">Export Filtered Data Only</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 pt-4">
+                        <button onclick="executeExport()" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                        <button onclick="closeModal('exportModal')" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+        let currentUser = null;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadDashboardData();
+            updateLastUpdated();
+            setupFormHandlers();
+        });
+        
+        // Setup form handlers
+        function setupFormHandlers() {
+            // Add User Form
+            document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleAddUser();
+            });
+            
+            // Add Classroom Form
+            document.getElementById('addClassroomForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleAddClassroom();
+            });
+            
+            // Add Subject Form
+            document.getElementById('addSubjectForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleAddSubject();
+            });
+            
+            // Add Batch Form
+            document.getElementById('addBatchForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleAddBatch();
+            });
+            
+            // Setup user filters
+            setupUserFilters();
+            
+            // Setup classroom filters
+            setupClassroomFilters();
+            
+            // Setup subject filters
+            setupSubjectFilters();
+            
+            // Setup batch filters
+            setupBatchFilters();
+        }
+        
+        // Check authentication
+        function checkAuth() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            currentUser = JSON.parse(user);
+            if (currentUser.role !== 'admin') {
+                showToast('Access denied. Admin privileges required.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+            
+            document.getElementById('adminName').textContent = currentUser.name;
+        }
+        
+        // Navigation functions
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked nav item
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Update page title and description
+            updatePageInfo(sectionId);
+            
+            // Load section-specific data
+            loadSectionData(sectionId);
+        }
+        
+        function updatePageInfo(sectionId) {
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'timetables': 'Timetable Management',
+                'users': 'User Management',
+                'classrooms': 'Classroom Management',
+                'subjects': 'Subject Management',
+                'batches': 'Batch Management',
+                'analytics': 'Analytics & Reports',
+                'settings': 'System Settings'
+            };
+            
+            const descriptions = {
+                'dashboard': 'Welcome to the Smart Scheduler Admin Panel',
+                'timetables': 'Manage and generate timetables',
+                'users': 'Manage system users and permissions',
+                'classrooms': 'Manage classrooms and facilities',
+                'subjects': 'Manage subjects and courses',
+                'batches': 'Manage student batches',
+                'analytics': 'View system analytics and reports',
+                'settings': 'Configure system settings'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[sectionId];
+            document.getElementById('pageDescription').textContent = descriptions[sectionId];
+        }
+        
+        // Get auth headers
+        function getAuthHeaders() {
+            const token = localStorage.getItem('token');
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
+            };
+        }
+        
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const [usersRes, classroomsRes, subjectsRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/read/users`, {
+                        headers: getAuthHeaders()
+                    }),
+                    fetch(`${API_BASE_URL}/read/classrooms`, {
+                        headers: getAuthHeaders()
+                    }),
+                    fetch(`${API_BASE_URL}/read/subjects`, {
+                        headers: getAuthHeaders()
+                    })
+                ]);
+                
+                // Check if responses are ok
+                if (!usersRes.ok || !classroomsRes.ok || !subjectsRes.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+                
+                const users = await usersRes.json();
+                const classrooms = await classroomsRes.json();
+                const subjects = await subjectsRes.json();
+                
+                document.getElementById('totalUsers').textContent = users.length;
+                document.getElementById('totalClassrooms').textContent = classrooms.length;
+                document.getElementById('totalSubjects').textContent = subjects.length;
+                document.getElementById('activeTimetables').textContent = '3'; // Mock data
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showToast('Using demo data - API connection issue', 'warning');
+                
+                // Fallback to demo data
+                document.getElementById('totalUsers').textContent = '12';
+                document.getElementById('totalClassrooms').textContent = '4';
+                document.getElementById('totalSubjects').textContent = '5';
+                document.getElementById('activeTimetables').textContent = '3';
+            }
+        }
+        
+        // Load section-specific data
+        async function loadSectionData(sectionId) {
+            switch(sectionId) {
+                case 'users':
+                    await loadUsers();
+                    break;
+                case 'classrooms':
+                    await loadClassrooms();
+                    break;
+                case 'subjects':
+                    await loadSubjects();
+                    break;
+                case 'batches':
+                    await loadBatches();
+                    break;
+            }
+        }
+        
+        // Global variables for filtering and selection
+        let allUsers = [];
+        let filteredUsers = [];
+        let selectedUsers = new Set();
+        
+        let allClassrooms = [];
+        let filteredClassrooms = [];
+        let selectedClassrooms = new Set();
+        
+        let allSubjects = [];
+        let filteredSubjects = [];
+        let selectedSubjects = new Set();
+        
+        let allBatches = [];
+        let filteredBatches = [];
+        let selectedBatches = new Set();
+        
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/read/users`, {
+                    headers: getAuthHeaders()
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch users');
+                }
+                
+                allUsers = await response.json();
+                filteredUsers = [...allUsers];
+                renderUsers();
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showToast('Using demo data - API connection issue', 'warning');
+                
+                // Fallback to demo data
+                allUsers = [
+                    {
+                        id: 'admin_001',
+                        name: 'Admin User',
+                        email: 'admin@univ.edu',
+                        role: 'admin'
+                    },
+                    {
+                        id: 'T1',
+                        name: 'Dr. Arjun Mehta',
+                        email: 't1@univ.edu',
+                        role: 'faculty'
+                    },
+                    {
+                        id: 'student_001',
+                        name: 'Demo Student',
+                        email: 'student@univ.edu',
+                        role: 'student'
+                    }
+                ];
+                filteredUsers = [...allUsers];
+                renderUsers();
+            }
+        }
+        
+        // Render users table
+        function renderUsers() {
+            const tbody = document.getElementById('usersTable');
+            tbody.innerHTML = filteredUsers.map(user => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4">
+                        <input type="checkbox" class="user-checkbox rounded border-gray-300" 
+                               value="${user.id}" onchange="toggleUserSelection('${user.id}')">
+                    </td>
+                    <td class="py-3 px-4">${user.name}</td>
+                    <td class="py-3 px-4">${user.email}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}">
+                            ${user.role}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <button onclick="editUser('${user.id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="Edit User">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteUser('${user.id}')" class="text-red-600 hover:text-red-800" title="Delete User">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updateBulkDeleteButton();
+        }
+        
+        // Load classrooms
+        async function loadClassrooms() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/read/classrooms`, {
+                    headers: getAuthHeaders()
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch classrooms');
+                }
+                
+                allClassrooms = await response.json();
+                filteredClassrooms = [...allClassrooms];
+                renderClassrooms();
+                
+            } catch (error) {
+                console.error('Error loading classrooms:', error);
+                showToast('Using demo data - API connection issue', 'warning');
+                
+                // Fallback to demo data
+                allClassrooms = [
+                    { id: 'LH-101', name: 'LH-101', type: 'lecture', capacity: 60 },
+                    { id: 'LH-102', name: 'LH-102', type: 'lecture', capacity: 60 },
+                    { id: 'LH-103', name: 'LH-103', type: 'lecture', capacity: 60 },
+                    { id: 'LH-104', name: 'LH-104', type: 'lecture', capacity: 60 },
+                    { id: 'LH-105', name: 'LH-105', type: 'lecture', capacity: 60 }
+                ];
+                filteredClassrooms = [...allClassrooms];
+                renderClassrooms();
+            }
+        }
+        
+        // Render classrooms table
+        function renderClassrooms() {
+            const tbody = document.getElementById('classroomsTable');
+            tbody.innerHTML = filteredClassrooms.map(classroom => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4">
+                        <input type="checkbox" class="classroom-checkbox rounded border-gray-300" 
+                               value="${classroom.id}" onchange="toggleClassroomSelection('${classroom.id}')">
+                    </td>
+                    <td class="py-3 px-4">${classroom.name}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full ${getClassroomTypeColor(classroom.type)}">
+                            ${classroom.type}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">${classroom.capacity}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                            Available
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <button onclick="editClassroom('${classroom.id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="Edit Classroom">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteClassroom('${classroom.id}')" class="text-red-600 hover:text-red-800" title="Delete Classroom">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updateBulkDeleteClassroomButton();
+        }
+        
+        // Load subjects
+        async function loadSubjects() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/read/subjects`, {
+                    headers: getAuthHeaders()
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch subjects');
+                }
+                
+                allSubjects = await response.json();
+                filteredSubjects = [...allSubjects];
+                renderSubjects();
+                
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+                showToast('Using demo data - API connection issue', 'warning');
+                
+                // Fallback to demo data
+                allSubjects = [
+                    { id: 'S1', name: 'Mathematics', credits: 4, type: 'theory', department: 'Mathematics', weekly_hours: 4 },
+                    { id: 'S2', name: 'Physics', credits: 4, type: 'theory', department: 'Physics', weekly_hours: 4 },
+                    { id: 'S3', name: 'Chemistry', credits: 4, type: 'theory', department: 'Chemistry', weekly_hours: 4 },
+                    { id: 'S4', name: 'Computer Science', credits: 4, type: 'theory', department: 'Computer Science', weekly_hours: 4 },
+                    { id: 'S5', name: 'English', credits: 3, type: 'theory', department: 'English', weekly_hours: 3 }
+                ];
+                filteredSubjects = [...allSubjects];
+                renderSubjects();
+            }
+        }
+        
+        // Render subjects table
+        function renderSubjects() {
+            const tbody = document.getElementById('subjectsTable');
+            tbody.innerHTML = filteredSubjects.map(subject => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4">
+                        <input type="checkbox" class="subject-checkbox rounded border-gray-300" 
+                               value="${subject.id}" onchange="toggleSubjectSelection('${subject.id}')">
+                    </td>
+                    <td class="py-3 px-4">${subject.name}</td>
+                    <td class="py-3 px-4">${subject.credits}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full ${getSubjectTypeColor(subject.type || 'theory')}">
+                            ${subject.type || 'theory'}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <button onclick="editSubject('${subject.id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="Edit Subject">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteSubject('${subject.id}')" class="text-red-600 hover:text-red-800" title="Delete Subject">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updateBulkDeleteSubjectButton();
+        }
+        
+        // Load batches
+        async function loadBatches() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/read/batches`, {
+                    headers: getAuthHeaders()
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch batches');
+                }
+                
+                allBatches = await response.json();
+                filteredBatches = [...allBatches];
+                renderBatches();
+                
+            } catch (error) {
+                console.error('Error loading batches:', error);
+                showToast('Using demo data - API connection issue', 'warning');
+                
+                // Fallback to demo data
+                allBatches = [
+                    { id: 'B1', name: 'B1', type: 'UG', size: 60, department: 'Computer Science' },
+                    { id: 'B2', name: 'B2', type: 'UG', size: 60, department: 'Computer Science' },
+                    { id: 'B3', name: 'B3', type: 'UG', size: 60, department: 'Computer Science' },
+                    { id: 'B4', name: 'B4', type: 'UG', size: 60, department: 'Computer Science' }
+                ];
+                filteredBatches = [...allBatches];
+                renderBatches();
+            }
+        }
+        
+        // Render batches table
+        function renderBatches() {
+            const tbody = document.getElementById('batchesTable');
+            tbody.innerHTML = filteredBatches.map(batch => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4">
+                        <input type="checkbox" class="batch-checkbox rounded border-gray-300" 
+                               value="${batch.id}" onchange="toggleBatchSelection('${batch.id}')">
+                    </td>
+                    <td class="py-3 px-4">${batch.name}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full ${getBatchTypeColor(batch.type)}">
+                            ${batch.type}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">${batch.size}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <button onclick="editBatch('${batch.id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="Edit Batch">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteBatch('${batch.id}')" class="text-red-600 hover:text-red-800" title="Delete Batch">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updateBulkDeleteBatchButton();
+        }
+        
+        // Utility functions
+        function getRoleColor(role) {
+            const colors = {
+                'admin': 'bg-red-100 text-red-800',
+                'faculty': 'bg-blue-100 text-blue-800',
+                'student': 'bg-green-100 text-green-800'
+            };
+            return colors[role] || 'bg-gray-100 text-gray-800';
+        }
+        
+        function getTypeColor(type) {
+            const colors = {
+                'lecture': 'bg-blue-100 text-blue-800',
+                'lab': 'bg-green-100 text-green-800'
+            };
+            return colors[type] || 'bg-gray-100 text-gray-800';
+        }
+        
+        function getClassroomTypeColor(type) {
+            const colors = {
+                'lecture': 'bg-blue-100 text-blue-800',
+                'lab': 'bg-green-100 text-green-800',
+                'seminar': 'bg-purple-100 text-purple-800'
+            };
+            return colors[type] || 'bg-gray-100 text-gray-800';
+        }
+        
+        function getSubjectTypeColor(type) {
+            const colors = {
+                'theory': 'bg-blue-100 text-blue-800',
+                'practical': 'bg-green-100 text-green-800',
+                'tutorial': 'bg-yellow-100 text-yellow-800'
+            };
+            return colors[type] || 'bg-gray-100 text-gray-800';
+        }
+        
+        function getBatchTypeColor(type) {
+            const colors = {
+                'UG': 'bg-blue-100 text-blue-800',
+                'PG': 'bg-purple-100 text-purple-800',
+                'PhD': 'bg-red-100 text-red-800'
+            };
+            return colors[type] || 'bg-gray-100 text-gray-800';
+        }
+        
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            // Clear form and reset modal state
+            const form = document.querySelector(`#${modalId} form`);
+            if (form) {
+                form.reset();
+                // Reset modal title and button text for user modal
+                if (modalId === 'addUserModal') {
+                    document.getElementById('userModalTitle').textContent = 'Add New User';
+                    document.getElementById('userSubmitBtn').textContent = 'Add User';
+                    delete form.dataset.editId;
+                }
+                // Reset modal title and button text for classroom modal
+                else if (modalId === 'addClassroomModal') {
+                    document.getElementById('classroomModalTitle').textContent = 'Add New Classroom';
+                    document.getElementById('classroomSubmitBtn').textContent = 'Add Classroom';
+                    delete form.dataset.editId;
+                }
+                // Reset modal title and button text for subject modal
+                else if (modalId === 'addSubjectModal') {
+                    document.getElementById('subjectModalTitle').textContent = 'Add New Subject';
+                    document.getElementById('subjectSubmitBtn').textContent = 'Add Subject';
+                    delete form.dataset.editId;
+                }
+                // Reset modal title and button text for batch modal
+                else if (modalId === 'addBatchModal') {
+                    document.getElementById('batchModalTitle').textContent = 'Add New Batch';
+                    document.getElementById('batchSubmitBtn').textContent = 'Add Batch';
+                    delete form.dataset.editId;
+                }
+            }
+        }
+        
+        // Action functions
+        function generateTimetable() {
+            showToast('Generating timetable...', 'info');
+            // Redirect to timetable generation page
+            window.open('table.html', '_blank');
+        }
+        
+        function viewTimetable() {
+            window.open('table.html', '_blank');
+        }
+        
+        function addUser() {
+            openModal('addUserModal');
+        }
+        
+        function addClassroom() {
+            openModal('addClassroomModal');
+        }
+        
+        function addSubject() {
+            openModal('addSubjectModal');
+        }
+        
+        function addBatch() {
+            openModal('addBatchModal');
+        }
+        
+        // Form handlers
+        async function handleAddUser() {
+            try {
+                const name = document.getElementById('userName').value;
+                const email = document.getElementById('userEmail').value;
+                const password = document.getElementById('userPassword').value;
+                const role = document.getElementById('userRole').value;
+                const editId = document.getElementById('addUserForm').dataset.editId;
+                
+                const userData = {
+                    name: name,
+                    email: email,
+                    role: role
+                };
+                
+                // Add password only for new users or if password is provided
+                if (!editId && password) {
+                    userData.password = password;
+                } else if (editId && password) {
+                    userData.password = password;
+                }
+                
+                let response;
+                if (editId) {
+                    // Update existing user
+                    userData.id = editId;
+                    response = await fetch(`${API_BASE_URL}/update/users/${editId}`, {
+                        method: 'PUT',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(userData)
+                    });
+                } else {
+                    // Create new user
+                    userData.id = `user_${Date.now()}`;
+                    response = await fetch(`${API_BASE_URL}/create/users`, {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(userData)
+                    });
+                }
+                
+                if (response.ok) {
+                    showToast(editId ? 'User updated successfully!' : 'User added successfully!', 'success');
+                    closeModal('addUserModal');
+                    loadUsers(); // Refresh the users list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Error: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error saving user:', error);
+                showToast('Error saving user. Please try again.', 'error');
+            }
+        }
+        
+        async function handleAddClassroom() {
+            try {
+                const name = document.getElementById('classroomName').value;
+                const capacity = parseInt(document.getElementById('classroomCapacity').value);
+                const type = document.getElementById('classroomType').value;
+                const editId = document.getElementById('addClassroomForm').dataset.editId;
+                
+                const classroomData = {
+                    name: name,
+                    capacity: capacity,
+                    type: type
+                };
+                
+                let response;
+                if (editId) {
+                    // Update existing classroom
+                    classroomData.id = editId;
+                    response = await fetch(`${API_BASE_URL}/update/classrooms/${editId}`, {
+                        method: 'PUT',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(classroomData)
+                    });
+                } else {
+                    // Create new classroom
+                    classroomData.id = `C${Date.now()}`;
+                    response = await fetch(`${API_BASE_URL}/create/classrooms`, {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(classroomData)
+                    });
+                }
+                
+                if (response.ok) {
+                    showToast(editId ? 'Classroom updated successfully!' : 'Classroom added successfully!', 'success');
+                    closeModal('addClassroomModal');
+                    loadClassrooms(); // Refresh the classrooms list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Error: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error saving classroom:', error);
+                showToast('Error saving classroom. Please try again.', 'error');
+            }
+        }
+        
+        async function handleAddSubject() {
+            try {
+                const name = document.getElementById('subjectName').value;
+                const credits = parseInt(document.getElementById('subjectCredits').value);
+                const weekly_hours = parseInt(document.getElementById('subjectHours').value);
+                const department = document.getElementById('subjectDepartment').value;
+                const editId = document.getElementById('addSubjectForm').dataset.editId;
+                
+                const subjectData = {
+                    name: name,
+                    credits: credits,
+                    weekly_hours: weekly_hours,
+                    department: department
+                };
+                
+                let response;
+                if (editId) {
+                    // Update existing subject
+                    subjectData.id = editId;
+                    response = await fetch(`${API_BASE_URL}/update/subjects/${editId}`, {
+                        method: 'PUT',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(subjectData)
+                    });
+                } else {
+                    // Create new subject
+                    subjectData.id = `S${Date.now()}`;
+                    response = await fetch(`${API_BASE_URL}/create/subjects`, {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(subjectData)
+                    });
+                }
+                
+                if (response.ok) {
+                    showToast(editId ? 'Subject updated successfully!' : 'Subject added successfully!', 'success');
+                    closeModal('addSubjectModal');
+                    loadSubjects(); // Refresh the subjects list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Error: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error saving subject:', error);
+                showToast('Error saving subject. Please try again.', 'error');
+            }
+        }
+        
+        async function handleAddBatch() {
+            try {
+                const name = document.getElementById('batchName').value;
+                const size = parseInt(document.getElementById('batchSize').value);
+                const type = document.getElementById('batchType').value;
+                const department = document.getElementById('batchDepartment').value;
+                const editId = document.getElementById('addBatchForm').dataset.editId;
+                
+                const batchData = {
+                    name: name,
+                    size: size,
+                    type: type,
+                    department: department
+                };
+                
+                let response;
+                if (editId) {
+                    // Update existing batch
+                    batchData.id = editId;
+                    response = await fetch(`${API_BASE_URL}/update/batches/${editId}`, {
+                        method: 'PUT',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(batchData)
+                    });
+                } else {
+                    // Create new batch
+                    batchData.id = `B${Date.now()}`;
+                    response = await fetch(`${API_BASE_URL}/create/batches`, {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(batchData)
+                    });
+                }
+                
+                if (response.ok) {
+                    showToast(editId ? 'Batch updated successfully!' : 'Batch added successfully!', 'success');
+                    closeModal('addBatchModal');
+                    loadBatches(); // Refresh the batches list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Error: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error saving batch:', error);
+                showToast('Error saving batch. Please try again.', 'error');
+            }
+        }
+        
+        // Search and Filter functions
+        function setupUserFilters() {
+            const searchInput = document.getElementById('userSearch');
+            const roleFilter = document.getElementById('userRoleFilter');
+            
+            searchInput.addEventListener('input', filterUsers);
+            roleFilter.addEventListener('change', filterUsers);
+        }
+        
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const roleFilter = document.getElementById('userRoleFilter').value;
+            
+            filteredUsers = allUsers.filter(user => {
+                const matchesSearch = user.name.toLowerCase().includes(searchTerm) || 
+                                    user.email.toLowerCase().includes(searchTerm);
+                const matchesRole = !roleFilter || user.role === roleFilter;
+                
+                return matchesSearch && matchesRole;
+            });
+            
+            renderUsers();
+        }
+        
+        function clearUserFilters() {
+            document.getElementById('userSearch').value = '';
+            document.getElementById('userRoleFilter').value = '';
+            filteredUsers = [...allUsers];
+            renderUsers();
+        }
+        
+        // Selection functions
+        function toggleAllUsers() {
+            const selectAll = document.getElementById('selectAllUsers');
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+                if (selectAll.checked) {
+                    selectedUsers.add(checkbox.value);
+                } else {
+                    selectedUsers.delete(checkbox.value);
+                }
+            });
+            
+            updateBulkDeleteButton();
+        }
+        
+        function toggleUserSelection(userId) {
+            if (selectedUsers.has(userId)) {
+                selectedUsers.delete(userId);
+            } else {
+                selectedUsers.add(userId);
+            }
+            
+            updateBulkDeleteButton();
+            updateSelectAllCheckbox();
+        }
+        
+        function updateBulkDeleteButton() {
+            const bulkDeleteBtn = document.getElementById('bulkDeleteUsersBtn');
+            if (selectedUsers.size > 0) {
+                bulkDeleteBtn.classList.remove('hidden');
+                bulkDeleteBtn.innerHTML = `<i class="fas fa-trash mr-2"></i>Delete Selected (${selectedUsers.size})`;
+            } else {
+                bulkDeleteBtn.classList.add('hidden');
+            }
+        }
+        
+        function updateSelectAllCheckbox() {
+            const selectAll = document.getElementById('selectAllUsers');
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+            
+            if (checkedCount === 0) {
+                selectAll.indeterminate = false;
+                selectAll.checked = false;
+            } else if (checkedCount === checkboxes.length) {
+                selectAll.indeterminate = false;
+                selectAll.checked = true;
+            } else {
+                selectAll.indeterminate = true;
+            }
+        }
+        
+        // Edit and Delete functions
+        function editUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            
+            // Fill form with user data
+            document.getElementById('userModalTitle').textContent = 'Edit User';
+            document.getElementById('userSubmitBtn').textContent = 'Update User';
+            document.getElementById('userName').value = user.name;
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userPassword').value = ''; // Don't show password
+            document.getElementById('userRole').value = user.role;
+            
+            // Store the user ID for update
+            document.getElementById('addUserForm').dataset.editId = userId;
+            
+            openModal('addUserModal');
+        }
+        
+        async function deleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    showToast('User deleted successfully!', 'success');
+                    loadUsers(); // Refresh the users list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Error: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showToast('Error deleting user. Please try again.', 'error');
+            }
+        }
+        
+        async function bulkDeleteUsers() {
+            if (selectedUsers.size === 0) return;
+            
+            if (!confirm(`Are you sure you want to delete ${selectedUsers.size} selected users?`)) return;
+            
+            try {
+                const deletePromises = Array.from(selectedUsers).map(userId => 
+                    fetch(`${API_BASE_URL}/delete/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: getAuthHeaders()
+                    })
+                );
+                
+                const results = await Promise.all(deletePromises);
+                const successCount = results.filter(r => r.ok).length;
+                
+                if (successCount > 0) {
+                    showToast(`${successCount} users deleted successfully!`, 'success');
+                    selectedUsers.clear();
+                    loadUsers(); // Refresh the users list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    showToast('Error deleting users. Please try again.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error bulk deleting users:', error);
+                showToast('Error deleting users. Please try again.', 'error');
+            }
+        }
+        
+        // Classroom search and filter functions
+        function setupClassroomFilters() {
+            const searchInput = document.getElementById('classroomSearch');
+            const typeFilter = document.getElementById('classroomTypeFilter');
+            
+            searchInput.addEventListener('input', filterClassrooms);
+            typeFilter.addEventListener('change', filterClassrooms);
+        }
+        
+        function filterClassrooms() {
+            const searchTerm = document.getElementById('classroomSearch').value.toLowerCase();
+            const typeFilter = document.getElementById('classroomTypeFilter').value;
+            
+            filteredClassrooms = allClassrooms.filter(classroom => {
+                const matchesSearch = classroom.name.toLowerCase().includes(searchTerm);
+                const matchesType = !typeFilter || classroom.type === typeFilter;
+                
+                return matchesSearch && matchesType;
+            });
+            
+            renderClassrooms();
+        }
+        
+        function clearClassroomFilters() {
+            document.getElementById('classroomSearch').value = '';
+            document.getElementById('classroomTypeFilter').value = '';
+            filteredClassrooms = [...allClassrooms];
+            renderClassrooms();
+        }
+        
+        // Classroom selection functions
+        function toggleAllClassrooms() {
+            const selectAll = document.getElementById('selectAllClassrooms');
+            const checkboxes = document.querySelectorAll('.classroom-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+                if (selectAll.checked) {
+                    selectedClassrooms.add(checkbox.value);
+                } else {
+                    selectedClassrooms.delete(checkbox.value);
+                }
+            });
+            
+            updateBulkDeleteClassroomButton();
+        }
+        
+        function toggleClassroomSelection(classroomId) {
+            if (selectedClassrooms.has(classroomId)) {
+                selectedClassrooms.delete(classroomId);
+            } else {
+                selectedClassrooms.add(classroomId);
+            }
+            
+            updateBulkDeleteClassroomButton();
+            updateSelectAllClassroomCheckbox();
+        }
+        
+        function updateBulkDeleteClassroomButton() {
+            const bulkDeleteBtn = document.getElementById('bulkDeleteClassroomsBtn');
+            if (selectedClassrooms.size > 0) {
+                bulkDeleteBtn.classList.remove('hidden');
+                bulkDeleteBtn.innerHTML = `<i class="fas fa-trash mr-2"></i>Delete Selected (${selectedClassrooms.size})`;
+            } else {
+                bulkDeleteBtn.classList.add('hidden');
+            }
+        }
+        
+        function updateSelectAllClassroomCheckbox() {
+            const selectAll = document.getElementById('selectAllClassrooms');
+            const checkboxes = document.querySelectorAll('.classroom-checkbox');
+            const checkedCount = document.querySelectorAll('.classroom-checkbox:checked').length;
+            
+            if (checkedCount === 0) {
+                selectAll.indeterminate = false;
+                selectAll.checked = false;
+            } else if (checkedCount === checkboxes.length) {
+                selectAll.indeterminate = false;
+                selectAll.checked = true;
+            } else {
+                selectAll.indeterminate = true;
+            }
+        }
+        
+        // Classroom edit and delete functions
+        function editClassroom(classroomId) {
+            const classroom = allClassrooms.find(c => c.id === classroomId);
+            if (!classroom) return;
+            
+            // Fill form with classroom data
+            document.getElementById('classroomModalTitle').textContent = 'Edit Classroom';
+            document.getElementById('classroomSubmitBtn').textContent = 'Update Classroom';
+            document.getElementById('classroomName').value = classroom.name;
+            document.getElementById('classroomCapacity').value = classroom.capacity;
+            document.getElementById('classroomType').value = classroom.type;
+            
+            // Store the classroom ID for update
+            document.getElementById('addClassroomForm').dataset.editId = classroomId;
+            
+            openModal('addClassroomModal');
+        }
+        
+        async function deleteClassroom(classroomId) {
+            if (!confirm('Are you sure you want to delete this classroom?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete/classrooms/${classroomId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    showToast('Classroom deleted successfully!', 'success');
+                    loadClassrooms(); // Refresh the classrooms list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Error: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting classroom:', error);
+                showToast('Error deleting classroom. Please try again.', 'error');
+            }
+        }
+        
+        async function bulkDeleteClassrooms() {
+            if (selectedClassrooms.size === 0) return;
+            
+            if (!confirm(`Are you sure you want to delete ${selectedClassrooms.size} selected classrooms?`)) return;
+            
+            try {
+                const deletePromises = Array.from(selectedClassrooms).map(classroomId => 
+                    fetch(`${API_BASE_URL}/delete/classrooms/${classroomId}`, {
+                        method: 'DELETE',
+                        headers: getAuthHeaders()
+                    })
+                );
+                
+                const results = await Promise.all(deletePromises);
+                const successCount = results.filter(r => r.ok).length;
+                
+                if (successCount > 0) {
+                    showToast(`${successCount} classrooms deleted successfully!`, 'success');
+                    selectedClassrooms.clear();
+                    loadClassrooms(); // Refresh the classrooms list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    showToast('Error deleting classrooms. Please try again.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error bulk deleting classrooms:', error);
+                showToast('Error deleting classrooms. Please try again.', 'error');
+            }
+        }
+        
+        // Subject search and filter functions
+        function setupSubjectFilters() {
+            const searchInput = document.getElementById('subjectSearch');
+            const creditsFilter = document.getElementById('subjectCreditsFilter');
+            
+            searchInput.addEventListener('input', filterSubjects);
+            creditsFilter.addEventListener('change', filterSubjects);
+        }
+        
+        function filterSubjects() {
+            const searchTerm = document.getElementById('subjectSearch').value.toLowerCase();
+            const creditsFilter = document.getElementById('subjectCreditsFilter').value;
+            
+            filteredSubjects = allSubjects.filter(subject => {
+                const matchesSearch = subject.name.toLowerCase().includes(searchTerm);
+                const matchesCredits = !creditsFilter || subject.credits.toString() === creditsFilter;
+                
+                return matchesSearch && matchesCredits;
+            });
+            
+            renderSubjects();
+        }
+        
+        function clearSubjectFilters() {
+            document.getElementById('subjectSearch').value = '';
+            document.getElementById('subjectCreditsFilter').value = '';
+            filteredSubjects = [...allSubjects];
+            renderSubjects();
+        }
+        
+        // Subject selection functions
+        function toggleAllSubjects() {
+            const selectAll = document.getElementById('selectAllSubjects');
+            const checkboxes = document.querySelectorAll('.subject-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+                if (selectAll.checked) {
+                    selectedSubjects.add(checkbox.value);
+                } else {
+                    selectedSubjects.delete(checkbox.value);
+                }
+            });
+            
+            updateBulkDeleteSubjectButton();
+        }
+        
+        function toggleSubjectSelection(subjectId) {
+            if (selectedSubjects.has(subjectId)) {
+                selectedSubjects.delete(subjectId);
+            } else {
+                selectedSubjects.add(subjectId);
+            }
+            
+            updateBulkDeleteSubjectButton();
+            updateSelectAllSubjectCheckbox();
+        }
+        
+        function updateBulkDeleteSubjectButton() {
+            const bulkDeleteBtn = document.getElementById('bulkDeleteSubjectsBtn');
+            if (selectedSubjects.size > 0) {
+                bulkDeleteBtn.classList.remove('hidden');
+                bulkDeleteBtn.innerHTML = `<i class="fas fa-trash mr-2"></i>Delete Selected (${selectedSubjects.size})`;
+            } else {
+                bulkDeleteBtn.classList.add('hidden');
+            }
+        }
+        
+        function updateSelectAllSubjectCheckbox() {
+            const selectAll = document.getElementById('selectAllSubjects');
+            const checkboxes = document.querySelectorAll('.subject-checkbox');
+            const checkedCount = document.querySelectorAll('.subject-checkbox:checked').length;
+            
+            if (checkedCount === 0) {
+                selectAll.indeterminate = false;
+                selectAll.checked = false;
+            } else if (checkedCount === checkboxes.length) {
+                selectAll.indeterminate = false;
+                selectAll.checked = true;
+            } else {
+                selectAll.indeterminate = true;
+            }
+        }
+        
+        // Subject edit and delete functions
+        function editSubject(subjectId) {
+            const subject = allSubjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            
+            // Fill form with subject data
+            document.getElementById('subjectModalTitle').textContent = 'Edit Subject';
+            document.getElementById('subjectSubmitBtn').textContent = 'Update Subject';
+            document.getElementById('subjectName').value = subject.name;
+            document.getElementById('subjectCredits').value = subject.credits;
+            document.getElementById('subjectHours').value = subject.weekly_hours || subject.hours || 3; // Fallback to 3 if not available
+            document.getElementById('subjectDepartment').value = subject.department;
+            
+            // Store the subject ID for update
+            document.getElementById('addSubjectForm').dataset.editId = subjectId;
+            
+            openModal('addSubjectModal');
+        }
+        
+        async function deleteSubject(subjectId) {
+            if (!confirm('Are you sure you want to delete this subject?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete/subjects/${subjectId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    showToast('Subject deleted successfully!', 'success');
+                    loadSubjects(); // Refresh the subjects list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Error: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting subject:', error);
+                showToast('Error deleting subject. Please try again.', 'error');
+            }
+        }
+        
+        async function bulkDeleteSubjects() {
+            if (selectedSubjects.size === 0) return;
+            
+            if (!confirm(`Are you sure you want to delete ${selectedSubjects.size} selected subjects?`)) return;
+            
+            try {
+                const deletePromises = Array.from(selectedSubjects).map(subjectId => 
+                    fetch(`${API_BASE_URL}/delete/subjects/${subjectId}`, {
+                        method: 'DELETE',
+                        headers: getAuthHeaders()
+                    })
+                );
+                
+                const results = await Promise.all(deletePromises);
+                const successCount = results.filter(r => r.ok).length;
+                
+                if (successCount > 0) {
+                    showToast(`${successCount} subjects deleted successfully!`, 'success');
+                    selectedSubjects.clear();
+                    loadSubjects(); // Refresh the subjects list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    showToast('Error deleting subjects. Please try again.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error bulk deleting subjects:', error);
+                showToast('Error deleting subjects. Please try again.', 'error');
+            }
+        }
+        
+        // Batch search and filter functions
+        function setupBatchFilters() {
+            const searchInput = document.getElementById('batchSearch');
+            const typeFilter = document.getElementById('batchTypeFilter');
+            
+            searchInput.addEventListener('input', filterBatches);
+            typeFilter.addEventListener('change', filterBatches);
+        }
+        
+        function filterBatches() {
+            const searchTerm = document.getElementById('batchSearch').value.toLowerCase();
+            const typeFilter = document.getElementById('batchTypeFilter').value;
+            
+            filteredBatches = allBatches.filter(batch => {
+                const matchesSearch = batch.name.toLowerCase().includes(searchTerm);
+                const matchesType = !typeFilter || batch.type === typeFilter;
+                
+                return matchesSearch && matchesType;
+            });
+            
+            renderBatches();
+        }
+        
+        function clearBatchFilters() {
+            document.getElementById('batchSearch').value = '';
+            document.getElementById('batchTypeFilter').value = '';
+            filteredBatches = [...allBatches];
+            renderBatches();
+        }
+        
+        // Batch selection functions
+        function toggleAllBatches() {
+            const selectAll = document.getElementById('selectAllBatches');
+            const checkboxes = document.querySelectorAll('.batch-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+                if (selectAll.checked) {
+                    selectedBatches.add(checkbox.value);
+                } else {
+                    selectedBatches.delete(checkbox.value);
+                }
+            });
+            
+            updateBulkDeleteBatchButton();
+        }
+        
+        function toggleBatchSelection(batchId) {
+            if (selectedBatches.has(batchId)) {
+                selectedBatches.delete(batchId);
+            } else {
+                selectedBatches.add(batchId);
+            }
+            
+            updateBulkDeleteBatchButton();
+            updateSelectAllBatchCheckbox();
+        }
+        
+        function updateBulkDeleteBatchButton() {
+            const bulkDeleteBtn = document.getElementById('bulkDeleteBatchesBtn');
+            if (selectedBatches.size > 0) {
+                bulkDeleteBtn.classList.remove('hidden');
+                bulkDeleteBtn.innerHTML = `<i class="fas fa-trash mr-2"></i>Delete Selected (${selectedBatches.size})`;
+            } else {
+                bulkDeleteBtn.classList.add('hidden');
+            }
+        }
+        
+        function updateSelectAllBatchCheckbox() {
+            const selectAll = document.getElementById('selectAllBatches');
+            const checkboxes = document.querySelectorAll('.batch-checkbox');
+            const checkedCount = document.querySelectorAll('.batch-checkbox:checked').length;
+            
+            if (checkedCount === 0) {
+                selectAll.indeterminate = false;
+                selectAll.checked = false;
+            } else if (checkedCount === checkboxes.length) {
+                selectAll.indeterminate = false;
+                selectAll.checked = true;
+            } else {
+                selectAll.indeterminate = true;
+            }
+        }
+        
+        // Batch edit and delete functions
+        function editBatch(batchId) {
+            const batch = allBatches.find(b => b.id === batchId);
+            if (!batch) return;
+            
+            // Fill form with batch data
+            document.getElementById('batchModalTitle').textContent = 'Edit Batch';
+            document.getElementById('batchSubmitBtn').textContent = 'Update Batch';
+            document.getElementById('batchName').value = batch.name;
+            document.getElementById('batchSize').value = batch.size;
+            document.getElementById('batchType').value = batch.type;
+            document.getElementById('batchDepartment').value = batch.department;
+            
+            // Store the batch ID for update
+            document.getElementById('addBatchForm').dataset.editId = batchId;
+            
+            openModal('addBatchModal');
+        }
+        
+        async function deleteBatch(batchId) {
+            if (!confirm('Are you sure you want to delete this batch?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete/batches/${batchId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    showToast('Batch deleted successfully!', 'success');
+                    loadBatches(); // Refresh the batches list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Error: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting batch:', error);
+                showToast('Error deleting batch. Please try again.', 'error');
+            }
+        }
+        
+        async function bulkDeleteBatches() {
+            if (selectedBatches.size === 0) return;
+            
+            if (!confirm(`Are you sure you want to delete ${selectedBatches.size} selected batches?`)) return;
+            
+            try {
+                const deletePromises = Array.from(selectedBatches).map(batchId => 
+                    fetch(`${API_BASE_URL}/delete/batches/${batchId}`, {
+                        method: 'DELETE',
+                        headers: getAuthHeaders()
+                    })
+                );
+                
+                const results = await Promise.all(deletePromises);
+                const successCount = results.filter(r => r.ok).length;
+                
+                if (successCount > 0) {
+                    showToast(`${successCount} batches deleted successfully!`, 'success');
+                    selectedBatches.clear();
+                    loadBatches(); // Refresh the batches list
+                    loadDashboardData(); // Refresh dashboard stats
+                } else {
+                    showToast('Error deleting batches. Please try again.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error bulk deleting batches:', error);
+                showToast('Error deleting batches. Please try again.', 'error');
+            }
+        }
+        
+        // Export functionality
+        function openExportModal() {
+            // Update record counts in the modal
+            updateExportModalCounts();
+            openModal('exportModal');
+        }
+        
+        function updateExportModalCounts() {
+            const userCount = document.querySelector('input[value="users"]').nextElementSibling;
+            const classroomCount = document.querySelector('input[value="classrooms"]').nextElementSibling;
+            const subjectCount = document.querySelector('input[value="subjects"]').nextElementSibling;
+            const batchCount = document.querySelector('input[value="batches"]').nextElementSibling;
+            
+            userCount.textContent = `Users (${allUsers.length} records)`;
+            classroomCount.textContent = `Classrooms (${allClassrooms.length} records)`;
+            subjectCount.textContent = `Subjects (${allSubjects.length} records)`;
+            batchCount.textContent = `Batches (${allBatches.length} records)`;
+        }
+        
+        function executeExport() {
+            const exportType = document.querySelector('input[name="exportType"]:checked').value;
+            const exportFormat = document.querySelector('input[name="exportFormat"]:checked').value;
+            const includeHeaders = document.getElementById('includeHeaders').checked;
+            const includeTimestamps = document.getElementById('includeTimestamps').checked;
+            const filteredData = document.getElementById('filteredData').checked;
+            
+            let data, filename;
+            
+            // Get data based on selection
+            if (exportType === 'all') {
+                data = {
+                    users: filteredData ? filteredUsers : allUsers,
+                    classrooms: filteredData ? filteredClassrooms : allClassrooms,
+                    subjects: filteredData ? filteredSubjects : allSubjects,
+                    batches: filteredData ? filteredBatches : allBatches,
+                    exportInfo: {
+                        timestamp: new Date().toISOString(),
+                        totalRecords: (filteredData ? filteredUsers.length : allUsers.length) + 
+                                    (filteredData ? filteredClassrooms.length : allClassrooms.length) + 
+                                    (filteredData ? filteredSubjects.length : allSubjects.length) + 
+                                    (filteredData ? filteredBatches.length : allBatches.length)
+                    }
+                };
+                filename = `complete_report_${new Date().toISOString().split('T')[0]}`;
+            } else {
+                switch(exportType) {
+                    case 'users':
+                        data = filteredData ? filteredUsers : allUsers;
+                        filename = 'users';
+                        break;
+                    case 'classrooms':
+                        data = filteredData ? filteredClassrooms : allClassrooms;
+                        filename = 'classrooms';
+                        break;
+                    case 'subjects':
+                        data = filteredData ? filteredSubjects : allSubjects;
+                        filename = 'subjects';
+                        break;
+                    case 'batches':
+                        data = filteredData ? filteredBatches : allBatches;
+                        filename = 'batches';
+                        break;
+                }
+            }
+            
+            // Export based on format
+            switch(exportFormat) {
+                case 'csv':
+                    exportToCSV(data, filename, includeHeaders, includeTimestamps);
+                    break;
+                case 'excel':
+                    exportToExcel(data, filename, includeHeaders, includeTimestamps);
+                    break;
+                case 'json':
+                    exportToJSON(data, filename, includeTimestamps);
+                    break;
+                case 'pdf':
+                    exportToPDF(data, filename, includeHeaders, includeTimestamps);
+                    break;
+            }
+            
+            closeModal('exportModal');
+        }
+        
+        function exportToCSV(data, filename, includeHeaders, includeTimestamps) {
+            let csvContent;
+            
+            if (filename.startsWith('complete_report')) {
+                csvContent = generateCompleteReportCSV(data, includeHeaders, includeTimestamps);
+            } else {
+                csvContent = generateEntityCSV(data, filename, includeHeaders, includeTimestamps);
+            }
+            
+            downloadFile(csvContent, `${filename}.csv`, 'text/csv');
+            showToast(`${filename} exported to CSV successfully!`, 'success');
+        }
+        
+        function generateEntityCSV(data, entityType, includeHeaders, includeTimestamps) {
+            let headers, rows;
+            
+            switch(entityType) {
+                case 'users':
+                    headers = ['ID', 'Name', 'Email', 'Role', 'Status'];
+                    rows = data.map(user => [user.id, user.name, user.email, user.role, 'Active']);
+                    break;
+                case 'classrooms':
+                    headers = ['ID', 'Name', 'Type', 'Capacity', 'Status'];
+                    rows = data.map(classroom => [classroom.id, classroom.name, classroom.type, classroom.capacity, 'Available']);
+                    break;
+                case 'subjects':
+                    headers = ['ID', 'Name', 'Credits', 'Type', 'Department', 'Weekly Hours'];
+                    rows = data.map(subject => [subject.id, subject.name, subject.credits, subject.type || 'theory', subject.department, subject.weekly_hours || 3]);
+                    break;
+                case 'batches':
+                    headers = ['ID', 'Name', 'Type', 'Size', 'Department', 'Status'];
+                    rows = data.map(batch => [batch.id, batch.name, batch.type, batch.size, batch.department, 'Active']);
+                    break;
+            }
+            
+            let csvRows = [];
+            if (includeHeaders) {
+                csvRows.push(headers.map(h => `"${h}"`).join(','));
+            }
+            csvRows.push(...rows.map(row => row.map(field => `"${field}"`).join(',')));
+            
+            if (includeTimestamps) {
+                csvRows.push(`"Export Date","${new Date().toLocaleString()}"`);
+            }
+            
+            return csvRows.join('\n');
+        }
+        
+        function generateCompleteReportCSV(data, includeHeaders, includeTimestamps) {
+            let csvContent = [];
+            
+            if (includeTimestamps) {
+                csvContent.push(`"Smart Classroom & Timetable Scheduler - Complete Report"`);
+                csvContent.push(`"Generated on: ${new Date().toLocaleString()}"`);
+                csvContent.push(`"Total Records: ${data.exportInfo.totalRecords}"`);
+                csvContent.push('');
+            }
+            
+            // Users section
+            csvContent.push('"USERS"');
+            csvContent.push(generateEntityCSV(data.users, 'users', includeHeaders, false));
+            csvContent.push('');
+            
+            // Classrooms section
+            csvContent.push('"CLASSROOMS"');
+            csvContent.push(generateEntityCSV(data.classrooms, 'classrooms', includeHeaders, false));
+            csvContent.push('');
+            
+            // Subjects section
+            csvContent.push('"SUBJECTS"');
+            csvContent.push(generateEntityCSV(data.subjects, 'subjects', includeHeaders, false));
+            csvContent.push('');
+            
+            // Batches section
+            csvContent.push('"BATCHES"');
+            csvContent.push(generateEntityCSV(data.batches, 'batches', includeHeaders, false));
+            
+            return csvContent.join('\n');
+        }
+        
+        function exportToExcel(data, filename, includeHeaders, includeTimestamps) {
+            // For Excel export, we'll create a CSV with Excel-compatible formatting
+            let excelContent;
+            
+            if (filename.startsWith('complete_report')) {
+                excelContent = generateCompleteReportCSV(data, includeHeaders, includeTimestamps);
+            } else {
+                excelContent = generateEntityCSV(data, filename, includeHeaders, includeTimestamps);
+            }
+            
+            downloadFile(excelContent, `${filename}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            showToast(`${filename} exported to Excel successfully!`, 'success');
+        }
+        
+        function exportToJSON(data, filename, includeTimestamps) {
+            let jsonData = data;
+            
+            if (includeTimestamps) {
+                jsonData = {
+                    exportInfo: {
+                        timestamp: new Date().toISOString(),
+                        version: '1.0',
+                        source: 'Smart Classroom & Timetable Scheduler'
+                    },
+                    data: data
+                };
+            }
+            
+            const jsonContent = JSON.stringify(jsonData, null, 2);
+            downloadFile(jsonContent, `${filename}.json`, 'application/json');
+            showToast(`${filename} exported to JSON successfully!`, 'success');
+        }
+        
+        function exportToPDF(data, filename, includeHeaders, includeTimestamps) {
+            // For PDF export, we'll create a simple HTML table and convert to PDF
+            let htmlContent = generatePDFHTML(data, filename, includeHeaders, includeTimestamps);
+            
+            // Create a new window with the HTML content
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            printWindow.print();
+            
+            showToast(`${filename} PDF generated successfully!`, 'success');
+        }
+        
+        function generatePDFHTML(data, filename, includeHeaders, includeTimestamps) {
+            let html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${filename} Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+                        h2 { color: #666; margin-top: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                        .timestamp { color: #666; font-size: 12px; margin-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Smart Classroom & Timetable Scheduler</h1>
+                    <h2>${filename.charAt(0).toUpperCase() + filename.slice(1)} Report</h2>
+            `;
+            
+            if (includeTimestamps) {
+                html += `<div class="timestamp">Generated on: ${new Date().toLocaleString()}</div>`;
+            }
+            
+            if (filename.startsWith('complete_report')) {
+                // Generate complete report HTML
+                html += generateCompleteReportHTML(data, includeHeaders);
+            } else {
+                // Generate single entity HTML
+                html += generateEntityHTML(data, filename, includeHeaders);
+            }
+            
+            html += `
+                </body>
+                </html>
+            `;
+            
+            return html;
+        }
+        
+        function generateEntityHTML(data, entityType, includeHeaders) {
+            let headers, rows;
+            
+            switch(entityType) {
+                case 'users':
+                    headers = ['ID', 'Name', 'Email', 'Role', 'Status'];
+                    rows = data.map(user => [user.id, user.name, user.email, user.role, 'Active']);
+                    break;
+                case 'classrooms':
+                    headers = ['ID', 'Name', 'Type', 'Capacity', 'Status'];
+                    rows = data.map(classroom => [classroom.id, classroom.name, classroom.type, classroom.capacity, 'Available']);
+                    break;
+                case 'subjects':
+                    headers = ['ID', 'Name', 'Credits', 'Type', 'Department', 'Weekly Hours'];
+                    rows = data.map(subject => [subject.id, subject.name, subject.credits, subject.type || 'theory', subject.department, subject.weekly_hours || 3]);
+                    break;
+                case 'batches':
+                    headers = ['ID', 'Name', 'Type', 'Size', 'Department', 'Status'];
+                    rows = data.map(batch => [batch.id, batch.name, batch.type, batch.size, batch.department, 'Active']);
+                    break;
+            }
+            
+            let html = '<table>';
+            
+            if (includeHeaders) {
+                html += '<thead><tr>';
+                headers.forEach(header => {
+                    html += `<th>${header}</th>`;
+                });
+                html += '</tr></thead>';
+            }
+            
+            html += '<tbody>';
+            rows.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => {
+                    html += `<td>${cell}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            
+            return html;
+        }
+        
+        function generateCompleteReportHTML(data, includeHeaders) {
+            let html = '';
+            
+            html += '<h2>Users</h2>';
+            html += generateEntityHTML(data.users, 'users', includeHeaders);
+            
+            html += '<h2>Classrooms</h2>';
+            html += generateEntityHTML(data.classrooms, 'classrooms', includeHeaders);
+            
+            html += '<h2>Subjects</h2>';
+            html += generateEntityHTML(data.subjects, 'subjects', includeHeaders);
+            
+            html += '<h2>Batches</h2>';
+            html += generateEntityHTML(data.batches, 'batches', includeHeaders);
+            
+            return html;
+        }
+        
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        function refreshData() {
+            loadDashboardData();
+            showToast('Data refreshed', 'success');
+        }
+        
+        function updateLastUpdated() {
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = now.toLocaleTimeString();
+        }
+        
+        function logout() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+        
+        // Toast notification functions
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toastMessage.textContent = message;
+            
+            if (type === 'success') {
+                toastIcon.innerHTML = '<i class="fas fa-check-circle text-green-500 text-xl"></i>';
+            } else if (type === 'error') {
+                toastIcon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
+            } else if (type === 'info') {
+                toastIcon.innerHTML = '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
+            }
+            
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                hideToast();
+            }, 3000);
+        }
+        
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('hidden');
+        }
+        
+        // Update last updated time every minute
+        setInterval(updateLastUpdated, 60000);
+    </script>
+</body>
+</html>
+
