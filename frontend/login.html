@@ -384,22 +384,43 @@
             } catch (error) {
                 console.error('Login error:', error);
                 
-                // For demo purposes, simulate successful login
-                showToast('Demo: Login successful! Redirecting to dashboard...', 'success');
+                // For demo purposes, simulate successful login based on email
+                let userRole = 'admin'; // default
                 
-                // Simulate user data
+                // Check email for role-based demo login
+                if (email === 'faculty@univ.edu') {
+                    userRole = 'faculty';
+                } else if (email === 'student@univ.edu') {
+                    userRole = 'student';
+                } else if (email === 'admin@univ.edu') {
+                    userRole = 'admin';
+                }
+                
+                showToast(`Demo: Login successful! Redirecting to ${userRole} dashboard...`, 'success');
+                
+                // Simulate user data based on email
                 const demoUser = {
-                    id: 'demo-user',
-                    name: 'Demo User',
+                    id: `demo-${userRole}`,
+                    name: userRole === 'faculty' ? 'Dr. John Smith' : 
+                          userRole === 'student' ? 'Demo Student' : 'Demo Admin',
                     email: email,
-                    role: 'admin'
+                    role: userRole
                 };
                 
                 localStorage.setItem('user', JSON.stringify(demoUser));
                 localStorage.setItem('token', 'demo-token');
                 
                 setTimeout(() => {
-                    window.location.href = 'table.html';
+                    // Redirect based on user role
+                    if (userRole === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                    } else if (userRole === 'faculty') {
+                        window.location.href = 'faculty-dashboard.html';
+                    } else if (userRole === 'student') {
+                        window.location.href = 'student-dashboard.html';
+                    } else {
+                        window.location.href = 'table.html';
+                    }
                 }, 1500);
             } finally {
                 setLoading(false);
@@ -410,10 +431,28 @@
         window.addEventListener('load', () => {
             const user = localStorage.getItem('user');
             if (user) {
-                showToast('You are already logged in. Redirecting...', 'info');
-                setTimeout(() => {
-                    window.location.href = 'table.html';
-                }, 1000);
+                try {
+                    const userData = JSON.parse(user);
+                    showToast('You are already logged in. Redirecting...', 'info');
+                    setTimeout(() => {
+                        // Redirect based on user role
+                        if (userData.role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else if (userData.role === 'faculty') {
+                            window.location.href = 'faculty-dashboard.html';
+                        } else if (userData.role === 'student') {
+                            window.location.href = 'student-dashboard.html';
+                        } else {
+                            window.location.href = 'table.html';
+                        }
+                    }, 1000);
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    // If there's an error, redirect to table.html as fallback
+                    setTimeout(() => {
+                        window.location.href = 'table.html';
+                    }, 1000);
+                }
             }
         });
         

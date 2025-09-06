@@ -3,285 +3,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty Dashboard - Smart Timetable Scheduler</title>
+    <title>Faculty Dashboard - Smart Classroom & Timetable Scheduler</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .glass-effect { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        .fade-in { animation: fadeIn 0.6s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .pulse-glow { animation: pulseGlow 2s infinite; }
-        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 5px rgba(102, 126, 234, 0.5); } 50% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); } }
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-right: 3px solid #3b82f6;
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            to { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
     </style>
 </head>
 <body class="gradient-bg min-h-screen">
-    <!-- Navigation Header -->
-    <nav class="glass-effect border-b border-white/20 px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-chalkboard-teacher text-white text-xl"></i>
+    <!-- Sidebar Navigation -->
+    <div class="flex h-screen">
+        <div class="sidebar w-64 p-6">
+            <!-- Logo -->
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3">
+                    <i class="fas fa-chalkboard-teacher text-blue-600 text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-white text-xl font-semibold">Faculty Dashboard</h1>
-                    <p class="text-white/70 text-sm">Smart Timetable Scheduler</p>
+                    <h1 class="text-white font-bold text-lg">Faculty Panel</h1>
+                    <p class="text-blue-100 text-sm">Smart Scheduler</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <div class="text-right text-white">
-                    <p class="font-medium" id="facultyName">Dr. John Smith</p>
-                    <p class="text-sm text-white/70" id="facultyRole">Faculty - Computer Science</p>
+            
+            <!-- User Info -->
+            <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold" id="facultyName">Dr. John Smith</p>
+                        <p class="text-blue-100 text-sm" id="facultyRole">Faculty - Computer Science</p>
+                    </div>
                 </div>
-                <button onclick="logout()" class="bg-red-500/20 hover:bg-red-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="space-y-2">
+                <a href="#" onclick="showSection('overview')" class="nav-item active flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Overview
+                </a>
+                <a href="#" onclick="showSection('timetable')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    Timetable
+                </a>
+                <a href="#" onclick="showSection('subjects')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-book mr-3"></i>
+                    Subjects & Batches
+                </a>
+                <a href="#" onclick="showSection('leave')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-calendar-times mr-3"></i>
+                    Leave Management
+                </a>
+                <a href="#" onclick="showSection('availability')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-user-clock mr-3"></i>
+                    Availability
+                </a>
+                <a href="#" onclick="showSection('students')" class="nav-item flex items-center p-3 text-white rounded-lg">
+                    <i class="fas fa-user-graduate mr-3"></i>
+                    Student Management
+                </a>
+            </nav>
+            
+            <!-- Logout -->
+            <div class="mt-auto pt-6">
+                <button onclick="logout()" class="w-full flex items-center p-3 text-red-200 hover:text-red-100 hover:bg-red-500 hover:bg-opacity-20 rounded-lg transition-all">
+                    <i class="fas fa-sign-out-alt mr-3"></i>
+                    Logout
                 </button>
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-6 py-8">
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="glass-effect rounded-xl p-6 card-hover fade-in">
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="glass-card p-6 mb-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-white/70 text-sm">Total Subjects</p>
-                        <p class="text-white text-2xl font-bold" id="totalSubjects">0</p>
+                        <h2 class="text-2xl font-bold text-gray-800" id="pageTitle">Faculty Overview</h2>
+                        <p class="text-gray-600" id="pageDescription">Welcome to your Faculty Dashboard</p>
                     </div>
-                    <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-book text-blue-400 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="glass-effect rounded-xl p-6 card-hover fade-in">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-white/70 text-sm">Active Batches</p>
-                        <p class="text-white text-2xl font-bold" id="activeBatches">0</p>
-                    </div>
-                    <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-users text-green-400 text-xl"></i>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Last updated</p>
+                            <p class="font-semibold text-gray-800" id="lastUpdated">Just now</p>
+                        </div>
+                        <button onclick="refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
                     </div>
                 </div>
-            </div>
-            <div class="glass-effect rounded-xl p-6 card-hover fade-in">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-white/70 text-sm">Weekly Hours</p>
-                        <p class="text-white text-2xl font-bold" id="weeklyHours">0</p>
-                    </div>
-                    <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-clock text-purple-400 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="glass-effect rounded-xl p-6 card-hover fade-in">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-white/70 text-sm">Leave Balance</p>
-                        <p class="text-white text-2xl font-bold" id="leaveBalance">0</p>
-                    </div>
-                    <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-calendar-times text-orange-400 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Dashboard Tabs -->
-        <div class="glass-effect rounded-xl overflow-hidden">
-            <!-- Tab Navigation -->
-            <div class="border-b border-white/20">
-                <nav class="flex space-x-8 px-6">
-                    <button onclick="switchTab('overview')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="overview-tab">
-                        <i class="fas fa-tachometer-alt mr-2"></i>Overview
-                    </button>
-                    <button onclick="switchTab('timetable')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="timetable-tab">
-                        <i class="fas fa-calendar-alt mr-2"></i>Timetable
-                    </button>
-                    <button onclick="switchTab('subjects')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="subjects-tab">
-                        <i class="fas fa-book mr-2"></i>Subjects & Batches
-                    </button>
-                    <button onclick="switchTab('leave')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="leave-tab">
-                        <i class="fas fa-calendar-times mr-2"></i>Leave Management
-                    </button>
-                    <button onclick="switchTab('availability')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-white/70 hover:text-white transition-all duration-200" id="availability-tab">
-                        <i class="fas fa-user-clock mr-2"></i>Availability
-                    </button>
-                </nav>
-            </div>
-
-            <!-- Tab Content -->
-            <div class="p-6">
-                <!-- Overview Tab -->
-                <div id="overview-content" class="tab-content">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Recent Activities -->
-                        <div class="glass-effect rounded-lg p-6">
-                            <h3 class="text-white text-lg font-semibold mb-4">
-                                <i class="fas fa-history mr-2"></i>Recent Activities
-                            </h3>
-                            <div class="space-y-3" id="recentActivities">
-                                <div class="flex items-center space-x-3 text-white/80">
-                                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                                    <span class="text-sm">New batch assigned: CS-2024-A</span>
+            </header>
+            
+            <!-- Overview Section -->
+            <div id="overview" class="content-section active">
+                <div class="px-6">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="stat-card glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total Subjects</p>
+                                    <p class="text-3xl font-bold text-gray-800" id="totalSubjects">0</p>
                                 </div>
-                                <div class="flex items-center space-x-3 text-white/80">
-                                    <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-                                    <span class="text-sm">Timetable updated for next week</span>
-                                </div>
-                                <div class="flex items-center space-x-3 text-white/80">
-                                    <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                                    <span class="text-sm">Leave request submitted</span>
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-book text-blue-600 text-xl"></i>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Upcoming Classes -->
-                        <div class="glass-effect rounded-lg p-6">
-                            <h3 class="text-white text-lg font-semibold mb-4">
-                                <i class="fas fa-clock mr-2"></i>Upcoming Classes
-                            </h3>
-                            <div class="space-y-3" id="upcomingClasses">
-                                <div class="flex items-center justify-between text-white/80">
-                                    <div>
-                                        <p class="font-medium">Data Structures</p>
-                                        <p class="text-sm text-white/60">CS-2024-A • LH-101</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-sm font-medium">10:00 AM</p>
-                                        <p class="text-xs text-white/60">Today</p>
-                                    </div>
+                        
+                        <div class="stat-card glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Active Batches</p>
+                                    <p class="text-3xl font-bold text-gray-800" id="activeBatches">0</p>
                                 </div>
-                                <div class="flex items-center justify-between text-white/80">
-                                    <div>
-                                        <p class="font-medium">Algorithms</p>
-                                        <p class="text-sm text-white/60">CS-2024-B • LH-102</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-sm font-medium">2:00 PM</p>
-                                        <p class="text-xs text-white/60">Today</p>
-                                    </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Weekly Hours</p>
+                                    <p class="text-3xl font-bold text-gray-800" id="weeklyHours">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-clock text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Leave Balance</p>
+                                    <p class="text-3xl font-bold text-gray-800" id="leaveBalance">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-times text-orange-600 text-xl"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Timetable Tab -->
-                <div id="timetable-content" class="tab-content hidden">
-                    <div class="mb-6">
-                        <h3 class="text-white text-xl font-semibold mb-4">
-                            <i class="fas fa-calendar-alt mr-2"></i>My Timetable
-                        </h3>
-                        <div class="flex items-center space-x-4 mb-4">
-                            <select id="weekSelector" class="bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
-                                <option value="current">Current Week</option>
-                                <option value="next">Next Week</option>
-                                <option value="previous">Previous Week</option>
-                            </select>
-                            <button onclick="exportTimetable()" class="bg-blue-500/20 hover:bg-blue-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
-                                <i class="fas fa-download mr-2"></i>Export
+                    
+                    <!-- Quick Actions -->
+                    <div class="glass-card rounded-xl p-6 mb-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <button onclick="showSection('timetable')" class="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg hover:shadow-lg transition-all pulse-glow">
+                                <i class="fas fa-calendar-alt text-2xl mb-2"></i>
+                                <p class="font-semibold">View Timetable</p>
+                                <p class="text-sm opacity-90">Check your schedule</p>
+                            </button>
+                            
+                            <button onclick="showSection('leave')" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg hover:shadow-lg transition-all">
+                                <i class="fas fa-calendar-times text-2xl mb-2"></i>
+                                <p class="font-semibold">Request Leave</p>
+                                <p class="text-sm opacity-90">Submit leave request</p>
+                            </button>
+                            
+                            <button onclick="showSection('availability')" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg hover:shadow-lg transition-all">
+                                <i class="fas fa-user-clock text-2xl mb-2"></i>
+                                <p class="font-semibold">Update Availability</p>
+                                <p class="text-sm opacity-90">Manage your schedule</p>
                             </button>
                         </div>
                     </div>
-                    <div class="glass-effect rounded-lg p-6">
+                    
+                    <!-- Recent Activity -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h3>
+                        <div id="recentActivity" class="space-y-3">
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-calendar-plus text-blue-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-800">New batch assigned: CS-2024-A</p>
+                                    <p class="text-xs text-gray-600">2 minutes ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-clock text-green-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-800">Timetable updated for next week</p>
+                                    <p class="text-xs text-gray-600">5 minutes ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Timetable Section -->
+            <div id="timetable" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">My Timetable</h3>
+                            <div class="flex space-x-3">
+                                <select id="weekSelector" class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2">
+                                    <option value="current">Current Week</option>
+                                    <option value="next">Next Week</option>
+                                    <option value="previous">Previous Week</option>
+                                </select>
+                                <button onclick="exportTimetable()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-download mr-2"></i>Export
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div id="timetableGrid" class="overflow-x-auto">
                             <!-- Timetable will be generated here -->
                         </div>
                     </div>
                 </div>
-
-                <!-- Subjects & Batches Tab -->
-                <div id="subjects-content" class="tab-content hidden">
-                    <div class="mb-6">
-                        <h3 class="text-white text-xl font-semibold mb-4">
-                            <i class="fas fa-book mr-2"></i>My Subjects & Batches
-                        </h3>
-                        <div class="flex items-center space-x-4">
-                            <input type="text" id="subjectSearch" placeholder="Search subjects..." class="bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg px-4 py-2 w-64">
-                            <select id="batchFilter" class="bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
-                                <option value="">All Batches</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Subjects List -->
-                        <div class="glass-effect rounded-lg p-6">
-                            <h4 class="text-white text-lg font-semibold mb-4">Assigned Subjects</h4>
-                            <div id="subjectsList" class="space-y-3">
-                                <!-- Subjects will be loaded here -->
+            </div>
+            
+            <!-- Subjects & Batches Section -->
+            <div id="subjects" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">My Subjects & Batches</h3>
+                            <div class="flex space-x-3">
+                                <input type="text" id="subjectSearch" placeholder="Search subjects..." class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2 w-64">
+                                <select id="batchFilter" class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2">
+                                    <option value="">All Batches</option>
+                                </select>
                             </div>
                         </div>
-                        <!-- Batches List -->
-                        <div class="glass-effect rounded-lg p-6">
-                            <h4 class="text-white text-lg font-semibold mb-4">Teaching Batches</h4>
-                            <div id="batchesList" class="space-y-3">
-                                <!-- Batches will be loaded here -->
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Subjects List -->
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Assigned Subjects</h4>
+                                <div id="subjectsList" class="space-y-3">
+                                    <!-- Subjects will be loaded here -->
+                                </div>
+                            </div>
+                            <!-- Batches List -->
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Teaching Batches</h4>
+                                <div id="batchesList" class="space-y-3">
+                                    <!-- Batches will be loaded here -->
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Leave Management Tab -->
-                <div id="leave-content" class="tab-content hidden">
-                    <div class="mb-6">
-                        <h3 class="text-white text-xl font-semibold mb-4">
-                            <i class="fas fa-calendar-times mr-2"></i>Leave Management
-                        </h3>
-                        <button onclick="openLeaveRequestModal()" class="bg-green-500/20 hover:bg-green-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
-                            <i class="fas fa-plus mr-2"></i>Request Leave
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Leave Balance -->
-                        <div class="glass-effect rounded-lg p-6">
-                            <h4 class="text-white text-lg font-semibold mb-4">Leave Balance</h4>
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-center text-white">
-                                    <span>Annual Leave</span>
-                                    <span class="font-semibold">15 days</span>
-                                </div>
-                                <div class="flex justify-between items-center text-white">
-                                    <span>Sick Leave</span>
-                                    <span class="font-semibold">10 days</span>
-                                </div>
-                                <div class="flex justify-between items-center text-white">
-                                    <span>Personal Leave</span>
-                                    <span class="font-semibold">5 days</span>
+            </div>
+            
+            <!-- Leave Management Section -->
+            <div id="leave" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Leave Management</h3>
+                            <button onclick="openLeaveRequestModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Request Leave
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Leave Balance -->
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Leave Balance</h4>
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center text-gray-700">
+                                        <span>Annual Leave</span>
+                                        <span class="font-semibold">15 days</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-gray-700">
+                                        <span>Sick Leave</span>
+                                        <span class="font-semibold">10 days</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-gray-700">
+                                        <span>Personal Leave</span>
+                                        <span class="font-semibold">5 days</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Leave History -->
-                        <div class="glass-effect rounded-lg p-6">
-                            <h4 class="text-white text-lg font-semibold mb-4">Recent Leave Requests</h4>
-                            <div id="leaveHistory" class="space-y-3">
-                                <!-- Leave history will be loaded here -->
+                            <!-- Leave History -->
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Recent Leave Requests</h4>
+                                <div id="leaveHistory" class="space-y-3">
+                                    <!-- Leave history will be loaded here -->
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Availability Tab -->
-                <div id="availability-content" class="tab-content hidden">
-                    <div class="mb-6">
-                        <h3 class="text-white text-xl font-semibold mb-4">
-                            <i class="fas fa-user-clock mr-2"></i>Availability Management
-                        </h3>
-                        <button onclick="openAvailabilityModal()" class="bg-blue-500/20 hover:bg-blue-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
-                            <i class="fas fa-edit mr-2"></i>Update Availability
-                        </button>
+            </div>
+            
+            <!-- Availability Section -->
+            <div id="availability" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Availability Management</h3>
+                            <button onclick="openAvailabilityModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-edit mr-2"></i>Update Availability
+                            </button>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">Weekly Availability</h4>
+                            <div id="availabilityGrid" class="grid grid-cols-7 gap-4">
+                                <!-- Availability grid will be generated here -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="glass-effect rounded-lg p-6">
-                        <h4 class="text-white text-lg font-semibold mb-4">Weekly Availability</h4>
-                        <div id="availabilityGrid" class="grid grid-cols-7 gap-4">
-                            <!-- Availability grid will be generated here -->
+                </div>
+            </div>
+            
+            <!-- Student Management Section -->
+            <div id="students" class="content-section">
+                <div class="px-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Student Management</h3>
+                            <div class="flex space-x-3">
+                                <button onclick="openBulkAttendanceModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                                    <i class="fas fa-users mr-2"></i>Bulk Attendance
+                                </button>
+                                <button onclick="openAttendanceHistoryModal()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors">
+                                    <i class="fas fa-history mr-2"></i>Attendance History
+                                </button>
+                                <button onclick="openStudentModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add Student
+                                </button>
+                                <button onclick="exportStudentData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-download mr-2"></i>Export
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search and Filter -->
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Search Students</label>
+                                <input type="text" id="studentSearch" placeholder="Search by name or ID..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Batch</label>
+                                <select id="studentBatchFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Batches</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Subject</label>
+                                <select id="studentSubjectFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Subjects</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="clearStudentFilters()" class="w-full bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                                    <i class="fas fa-times mr-2"></i>Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Student Statistics -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="fas fa-users text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Total Students</p>
+                                        <p class="text-xl font-bold text-gray-800" id="totalStudents">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="fas fa-check-circle text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Present Today</p>
+                                        <p class="text-xl font-bold text-gray-800" id="presentToday">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Absent Today</p>
+                                        <p class="text-xl font-bold text-gray-800" id="absentToday">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="fas fa-chart-line text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Avg Attendance</p>
+                                        <p class="text-xl font-bold text-gray-800" id="avgAttendance">0%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Student List -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Student ID</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Batch</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Subjects</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Attendance</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTable">
+                                    <!-- Students will be loaded here -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -290,95 +513,486 @@
     </div>
 
     <!-- Leave Request Modal -->
-    <div id="leaveRequestModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="glass-effect rounded-xl p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-white text-lg font-semibold">Request Leave</h3>
-                <button onclick="closeLeaveRequestModal()" class="text-white/70 hover:text-white">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="leaveRequestForm">
-                <div class="space-y-4">
+    <div id="leaveRequestModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Request Leave</h3>
+                    <button onclick="closeLeaveRequestModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="leaveRequestForm" class="space-y-4">
                     <div>
-                        <label class="block text-white/70 text-sm mb-2">Leave Type</label>
-                        <select id="leaveType" class="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Leave Type</label>
+                        <select id="leaveType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             <option value="annual">Annual Leave</option>
                             <option value="sick">Sick Leave</option>
                             <option value="personal">Personal Leave</option>
                         </select>
                     </div>
+                    
                     <div>
-                        <label class="block text-white/70 text-sm mb-2">Start Date</label>
-                        <input type="date" id="leaveStartDate" class="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                        <input type="date" id="leaveStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     </div>
+                    
                     <div>
-                        <label class="block text-white/70 text-sm mb-2">End Date</label>
-                        <input type="date" id="leaveEndDate" class="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                        <input type="date" id="leaveEndDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     </div>
+                    
                     <div>
-                        <label class="block text-white/70 text-sm mb-2">Reason</label>
-                        <textarea id="leaveReason" rows="3" class="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-2" placeholder="Please provide a reason for your leave request..."></textarea>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                        <textarea id="leaveReason" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Please provide a reason for your leave request..."></textarea>
                     </div>
-                </div>
-                <div class="flex space-x-3 mt-6">
-                    <button type="button" onclick="closeLeaveRequestModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-all duration-200">
-                        Cancel
-                    </button>
-                    <button type="submit" class="flex-1 bg-green-500/20 hover:bg-green-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
-                        Submit Request
-                    </button>
-                </div>
-            </form>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            Submit Request
+                        </button>
+                        <button type="button" onclick="closeLeaveRequestModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- Availability Modal -->
-    <div id="availabilityModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="glass-effect rounded-xl p-6 w-full max-w-2xl mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-white text-lg font-semibold">Update Availability</h3>
-                <button onclick="closeAvailabilityModal()" class="text-white/70 hover:text-white">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="space-y-4">
-                <div class="grid grid-cols-7 gap-2 text-center text-white/70 text-sm">
-                    <div>Mon</div>
-                    <div>Tue</div>
-                    <div>Wed</div>
-                    <div>Thu</div>
-                    <div>Fri</div>
-                    <div>Sat</div>
-                    <div>Sun</div>
+    <div id="availabilityModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-2xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Update Availability</h3>
+                    <button onclick="closeAvailabilityModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
                 </div>
-                <div id="availabilityForm" class="grid grid-cols-7 gap-2">
-                    <!-- Availability form will be generated here -->
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-7 gap-2 text-center text-gray-600 text-sm font-medium">
+                        <div>Mon</div>
+                        <div>Tue</div>
+                        <div>Wed</div>
+                        <div>Thu</div>
+                        <div>Fri</div>
+                        <div>Sat</div>
+                        <div>Sun</div>
+                    </div>
+                    <div id="availabilityForm" class="grid grid-cols-7 gap-2">
+                        <!-- Availability form will be generated here -->
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 mt-6">
+                    <button onclick="saveAvailability()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Save Availability
+                    </button>
+                    <button onclick="closeAvailabilityModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
                 </div>
             </div>
-            <div class="flex space-x-3 mt-6">
-                <button onclick="closeAvailabilityModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-all duration-200">
-                    Cancel
-                </button>
-                <button onclick="saveAvailability()" class="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
-                    Save Availability
-                </button>
+        </div>
+    </div>
+
+    <!-- Student Management Modal -->
+    <div id="studentModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-4xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="studentModalTitle" class="text-xl font-bold text-gray-800">Student Details</h3>
+                    <button onclick="closeStudentModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Student Information -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Student Information</h4>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Student ID</label>
+                                <input type="text" id="studentId" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                <input type="text" id="studentName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" id="studentEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                <input type="tel" id="studentPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Batch</label>
+                                <select id="studentBatch" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Batch</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Roll Number</label>
+                                <input type="text" id="studentRoll" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Academic Information -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Academic Information</h4>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Enrolled Subjects</label>
+                            <div id="enrolledSubjects" class="space-y-2 max-h-32 overflow-y-auto">
+                                <!-- Enrolled subjects will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Attendance %</label>
+                                <div class="flex items-center">
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mr-2">
+                                        <div id="attendanceBar" class="bg-green-600 h-2 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <span id="attendancePercent" class="text-sm font-medium text-gray-700">0%</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Overall Grade</label>
+                                <input type="text" id="studentGrade" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" readonly>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                            <textarea id="studentNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Add notes about the student..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex space-x-3 mt-6">
+                    <button onclick="saveStudent()" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-save mr-2"></i>Save Student
+                    </button>
+                    <button onclick="markAttendance()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-check-circle mr-2"></i>Mark Attendance
+                    </button>
+                    <button onclick="closeStudentModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div id="attendanceModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Mark Attendance</h3>
+                    <button onclick="closeAttendanceModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Student</label>
+                        <input type="text" id="attendanceStudentName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <input type="date" id="attendanceDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <select id="attendanceSubject" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="attendanceStatus" value="present" class="mr-3" checked>
+                                <span class="text-gray-700">Present</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="attendanceStatus" value="absent" class="mr-3">
+                                <span class="text-gray-700">Absent</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="attendanceStatus" value="late" class="mr-3">
+                                <span class="text-gray-700">Late</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+                        <textarea id="attendanceRemarks" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Add remarks..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 mt-6">
+                    <button onclick="saveAttendance()" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-save mr-2"></i>Save Attendance
+                    </button>
+                    <button onclick="closeAttendanceModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Attendance Modal -->
+    <div id="bulkAttendanceModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-4xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Bulk Attendance Marking</h3>
+                    <button onclick="closeBulkAttendanceModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Selection Panel -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-800">Select Class & Subject</h4>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Batch</label>
+                            <select id="bulkBatch" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Batch</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <select id="bulkSubject" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Subject</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                            <input type="date" id="bulkDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Time Slot</label>
+                            <select id="bulkTimeSlot" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Time Slot</option>
+                                <option value="09:00-10:00">09:00-10:00</option>
+                                <option value="10:00-11:00">10:00-11:00</option>
+                                <option value="11:00-12:00">11:00-12:00</option>
+                                <option value="12:00-13:00">12:00-13:00</option>
+                                <option value="14:00-15:00">14:00-15:00</option>
+                                <option value="15:00-16:00">15:00-16:00</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button onclick="loadBulkStudents()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-search mr-2"></i>Load Students
+                            </button>
+                            <button onclick="markAllPresent()" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-check mr-2"></i>Mark All Present
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Students List -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-800">Students List</h4>
+                        <div id="bulkStudentsList" class="max-h-96 overflow-y-auto space-y-2">
+                            <p class="text-gray-500 text-center py-8">Select batch and subject to load students</p>
+                        </div>
+                        
+                        <div class="flex space-x-2 pt-4">
+                            <button onclick="saveBulkAttendance()" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-save mr-2"></i>Save Attendance
+                            </button>
+                            <button onclick="closeBulkAttendanceModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance History Modal -->
+    <div id="attendanceHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-6xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Attendance History & Analytics</h3>
+                    <button onclick="closeAttendanceHistoryModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Filters -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Student</label>
+                            <select id="historyStudent" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Students</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <select id="historySubject" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Subjects</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                            <input type="date" id="historyFromDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                            <input type="date" id="historyToDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <!-- Analytics Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-chart-line text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Overall Attendance</p>
+                                    <p class="text-xl font-bold text-gray-800" id="overallAttendance">0%</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-check-circle text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Present Days</p>
+                                    <p class="text-xl font-bold text-gray-800" id="presentDays">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-times-circle text-red-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Absent Days</p>
+                                    <p class="text-xl font-bold text-gray-800" id="absentDays">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-clock text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Late Days</p>
+                                    <p class="text-xl font-bold text-gray-800" id="lateDays">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendance Chart -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Attendance Trend</h4>
+                        <div id="attendanceChart" class="h-64 flex items-center justify-center text-gray-500">
+                            <p>Chart will be displayed here</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendance Records Table -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Attendance Records</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Date</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Student</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Subject</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Time</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceHistoryTable">
+                                    <!-- Records will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button onclick="exportAttendanceHistory()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>Export History
+                        </button>
+                        <button onclick="closeAttendanceHistoryModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
-        <div class="flex items-center space-x-2">
-            <i class="fas fa-check-circle"></i>
-            <span id="toastMessage">Operation successful!</span>
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-4 max-w-sm">
+            <div class="flex items-center">
+                <div id="toastIcon" class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <p id="toastMessage" class="text-sm font-medium text-gray-900"></p>
+                </div>
+                <button onclick="hideToast()" class="ml-4 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
         // Configuration
         const API_BASE_URL = 'http://127.0.0.1:5000';
-        let currentTab = 'overview';
+        let currentSection = 'overview';
         let facultyData = {};
         let subjectsData = [];
         let batchesData = [];
@@ -386,12 +1000,34 @@
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
             loadFacultyData();
             loadSubjectsAndBatches();
             loadTimetable();
+            loadStudents();
             setupEventListeners();
+            setupStudentEventListeners();
             updateStats();
+            updateLastUpdated();
         });
+
+        // Check authentication
+        function checkAuth() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const userData = JSON.parse(user);
+            if (userData.role !== 'faculty') {
+                showToast('Access denied. Faculty privileges required.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+        }
 
         // Load faculty data
         async function loadFacultyData() {
@@ -502,14 +1138,14 @@
             // Render subjects
             const subjectsList = document.getElementById('subjectsList');
             subjectsList.innerHTML = subjectsData.map(subject => `
-                <div class="bg-white/10 rounded-lg p-4">
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h5 class="text-white font-medium">${subject.name}</h5>
-                            <p class="text-white/70 text-sm">${subject.code} • ${subject.credits} credits</p>
-                            <p class="text-white/60 text-xs">${subject.weekly_hours} hours/week</p>
+                            <h5 class="text-gray-800 font-medium">${subject.name}</h5>
+                            <p class="text-gray-600 text-sm">${subject.code} • ${subject.credits} credits</p>
+                            <p class="text-gray-500 text-xs">${subject.weekly_hours} hours/week</p>
                         </div>
-                        <span class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs">${subject.type}</span>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">${subject.type}</span>
                     </div>
                 </div>
             `).join('');
@@ -517,14 +1153,14 @@
             // Render batches
             const batchesList = document.getElementById('batchesList');
             batchesList.innerHTML = batchesData.map(batch => `
-                <div class="bg-white/10 rounded-lg p-4">
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h5 class="text-white font-medium">${batch.name}</h5>
-                            <p class="text-white/70 text-sm">${batch.strength} students</p>
-                            <p class="text-white/60 text-xs">Semester ${batch.semester}</p>
+                            <h5 class="text-gray-800 font-medium">${batch.name}</h5>
+                            <p class="text-gray-600 text-sm">${batch.strength} students</p>
+                            <p class="text-gray-500 text-xs">Semester ${batch.semester}</p>
                         </div>
-                        <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs">Active</span>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
                     </div>
                 </div>
             `).join('');
@@ -584,27 +1220,27 @@
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const timeSlots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'];
 
-            let html = '<table class="w-full text-white">';
-            html += '<thead><tr><th class="p-3 text-left">Time</th>';
+            let html = '<table class="w-full text-gray-800">';
+            html += '<thead><tr class="border-b border-gray-200"><th class="p-3 text-left font-semibold">Time</th>';
             days.forEach(day => {
-                html += `<th class="p-3 text-center">${day}</th>`;
+                html += `<th class="p-3 text-center font-semibold">${day}</th>`;
             });
             html += '</tr></thead><tbody>';
 
             timeSlots.forEach(timeSlot => {
-                html += `<tr><td class="p-3 font-medium">${timeSlot}</td>`;
+                html += `<tr class="border-b border-gray-100"><td class="p-3 font-medium">${timeSlot}</td>`;
                 days.forEach(day => {
                     const classData = timetableData.find(item => item.day === day && item.time === timeSlot);
                     if (classData) {
                         html += `<td class="p-3 text-center">
-                            <div class="bg-blue-500/20 rounded-lg p-2">
-                                <div class="font-medium text-sm">${classData.subject}</div>
-                                <div class="text-xs text-white/70">${classData.batch}</div>
-                                <div class="text-xs text-white/60">${classData.classroom}</div>
+                            <div class="bg-blue-100 rounded-lg p-2 border border-blue-200">
+                                <div class="font-medium text-sm text-gray-800">${classData.subject}</div>
+                                <div class="text-xs text-gray-600">${classData.batch}</div>
+                                <div class="text-xs text-gray-500">${classData.classroom}</div>
                             </div>
                         </td>`;
                     } else {
-                        html += '<td class="p-3 text-center text-white/30">Free</td>';
+                        html += '<td class="p-3 text-center text-gray-400">Free</td>';
                     }
                 });
                 html += '</tr>';
@@ -622,28 +1258,51 @@
             document.getElementById('leaveBalance').textContent = facultyData.leave_balance || 0;
         }
 
-        // Tab switching
-        function switchTab(tabName) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
+        // Section switching
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
             });
-
-            // Remove active class from all tabs
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-blue-400', 'text-white');
-                btn.classList.add('border-transparent', 'text-white/70');
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
             });
-
-            // Show selected tab content
-            document.getElementById(`${tabName}-content`).classList.remove('hidden');
-
-            // Add active class to selected tab
-            const activeTab = document.getElementById(`${tabName}-tab`);
-            activeTab.classList.remove('border-transparent', 'text-white/70');
-            activeTab.classList.add('border-blue-400', 'text-white');
-
-            currentTab = tabName;
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked nav item
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Update page title and description
+            updatePageInfo(sectionId);
+            
+            currentSection = sectionId;
+        }
+        
+        function updatePageInfo(sectionId) {
+            const titles = {
+                'overview': 'Faculty Overview',
+                'timetable': 'My Timetable',
+                'subjects': 'Subjects & Batches',
+                'leave': 'Leave Management',
+                'availability': 'Availability Management',
+                'students': 'Student Management'
+            };
+            
+            const descriptions = {
+                'overview': 'Welcome to your Faculty Dashboard',
+                'timetable': 'View and manage your teaching schedule',
+                'subjects': 'Manage your assigned subjects and batches',
+                'leave': 'Request and track your leave applications',
+                'availability': 'Set your weekly availability preferences',
+                'students': 'Manage and track your students'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[sectionId];
+            document.getElementById('pageDescription').textContent = descriptions[sectionId];
         }
 
         // Leave request modal
@@ -746,14 +1405,44 @@
         }
 
         // Show toast notification
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
             toastMessage.textContent = message;
-            toast.classList.remove('translate-x-full');
+            
+            if (type === 'success') {
+                toastIcon.innerHTML = '<i class="fas fa-check-circle text-green-500 text-xl"></i>';
+            } else if (type === 'error') {
+                toastIcon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
+            } else if (type === 'info') {
+                toastIcon.innerHTML = '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
+            }
+            
+            toast.classList.remove('hidden');
+            
             setTimeout(() => {
-                toast.classList.add('translate-x-full');
+                hideToast();
             }, 3000);
+        }
+        
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('hidden');
+        }
+        
+        function refreshData() {
+            loadFacultyData();
+            loadSubjectsAndBatches();
+            loadTimetable();
+            loadStudents();
+            showToast('Data refreshed', 'success');
+        }
+        
+        function updateLastUpdated() {
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = now.toLocaleTimeString();
         }
 
         // Setup event listeners
@@ -803,6 +1492,519 @@
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = 'login.html';
+        }
+        
+        // Update last updated time every minute
+        setInterval(updateLastUpdated, 60000);
+
+        // Student Management Functions
+        let studentsData = [];
+        let currentStudentId = null;
+        let attendanceHistory = [];
+        let bulkAttendanceData = [];
+
+        // Load students data
+        async function loadStudents() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/faculty/students`, {
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    studentsData = data.students || [];
+                    renderStudents();
+                    updateStudentStats();
+                    populateStudentFilters();
+                } else {
+                    // Demo data for testing
+                    studentsData = generateDemoStudents();
+                    renderStudents();
+                    updateStudentStats();
+                    populateStudentFilters();
+                }
+            } catch (error) {
+                console.error('Error loading students:', error);
+                // Demo data for testing
+                studentsData = generateDemoStudents();
+                renderStudents();
+                updateStudentStats();
+                populateStudentFilters();
+            }
+        }
+
+        // Generate demo students data
+        function generateDemoStudents() {
+            return [
+                {
+                    id: 'S001',
+                    name: 'John Doe',
+                    email: 'john.doe@student.edu',
+                    phone: '+1-555-0101',
+                    batch: 'ME1',
+                    rollNumber: 'ME1-001',
+                    subjects: ['Mathematics', 'Physics', 'Chemistry'],
+                    attendance: 85,
+                    grade: 'A-',
+                    status: 'present',
+                    notes: 'Excellent student, very participative'
+                },
+                {
+                    id: 'S002',
+                    name: 'Jane Smith',
+                    email: 'jane.smith@student.edu',
+                    phone: '+1-555-0102',
+                    batch: 'ME1',
+                    rollNumber: 'ME1-002',
+                    subjects: ['Mathematics', 'Physics', 'Chemistry'],
+                    attendance: 92,
+                    grade: 'A',
+                    status: 'present',
+                    notes: 'Top performer in class'
+                },
+                {
+                    id: 'S003',
+                    name: 'Mike Johnson',
+                    email: 'mike.johnson@student.edu',
+                    phone: '+1-555-0103',
+                    batch: 'ME2',
+                    rollNumber: 'ME2-001',
+                    subjects: ['Mathematics', 'Physics'],
+                    attendance: 78,
+                    grade: 'B+',
+                    status: 'absent',
+                    notes: 'Needs improvement in attendance'
+                },
+                {
+                    id: 'S004',
+                    name: 'Sarah Wilson',
+                    email: 'sarah.wilson@student.edu',
+                    phone: '+1-555-0104',
+                    batch: 'ME2',
+                    rollNumber: 'ME2-002',
+                    subjects: ['Mathematics', 'Physics'],
+                    attendance: 88,
+                    grade: 'A-',
+                    status: 'present',
+                    notes: 'Good student, consistent performance'
+                },
+                {
+                    id: 'S005',
+                    name: 'David Brown',
+                    email: 'david.brown@student.edu',
+                    phone: '+1-555-0105',
+                    batch: 'ME3',
+                    rollNumber: 'ME3-001',
+                    subjects: ['Chemistry', 'Biology'],
+                    attendance: 95,
+                    grade: 'A+',
+                    status: 'present',
+                    notes: 'Exceptional student, always on time'
+                }
+            ];
+        }
+
+        // Render students table
+        function renderStudents() {
+            const tbody = document.getElementById('studentsTable');
+            tbody.innerHTML = '';
+
+            studentsData.forEach(student => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-200 hover:bg-gray-50';
+                
+                const statusColor = student.status === 'present' ? 'text-green-600' : 
+                                  student.status === 'absent' ? 'text-red-600' : 'text-yellow-600';
+                const statusIcon = student.status === 'present' ? 'fa-check-circle' : 
+                                 student.status === 'absent' ? 'fa-times-circle' : 'fa-clock';
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4 text-gray-800 font-medium">${student.id}</td>
+                    <td class="py-3 px-4 text-gray-800">${student.name}</td>
+                    <td class="py-3 px-4">
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                            ${student.batch}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-gray-600">
+                        <div class="flex flex-wrap gap-1">
+                            ${student.subjects.map(subject => 
+                                `<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">${subject}</span>`
+                            ).join('')}
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: ${student.attendance}%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">${student.attendance}%</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="${statusColor}">
+                            <i class="fas ${statusIcon} mr-1"></i>
+                            ${student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex space-x-2">
+                            <button onclick="viewStudent('${student.id}')" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="editStudent('${student.id}')" class="text-green-600 hover:text-green-800">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="markAttendanceForStudent('${student.id}')" class="text-purple-600 hover:text-purple-800">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update student statistics
+        function updateStudentStats() {
+            const totalStudents = studentsData.length;
+            const presentToday = studentsData.filter(s => s.status === 'present').length;
+            const absentToday = studentsData.filter(s => s.status === 'absent').length;
+            const avgAttendance = studentsData.length > 0 ? 
+                Math.round(studentsData.reduce((sum, s) => sum + s.attendance, 0) / studentsData.length) : 0;
+
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('presentToday').textContent = presentToday;
+            document.getElementById('absentToday').textContent = absentToday;
+            document.getElementById('avgAttendance').textContent = avgAttendance + '%';
+        }
+
+        // Populate student filters
+        function populateStudentFilters() {
+            const batchFilter = document.getElementById('studentBatchFilter');
+            const subjectFilter = document.getElementById('studentSubjectFilter');
+            
+            // Get unique batches
+            const batches = [...new Set(studentsData.map(s => s.batch))];
+            batchFilter.innerHTML = '<option value="">All Batches</option>' + 
+                batches.map(batch => `<option value="${batch}">${batch}</option>`).join('');
+            
+            // Get unique subjects
+            const subjects = [...new Set(studentsData.flatMap(s => s.subjects))];
+            subjectFilter.innerHTML = '<option value="">All Subjects</option>' + 
+                subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('');
+        }
+
+        // Student modal functions
+        function openStudentModal() {
+            currentStudentId = null;
+            document.getElementById('studentModalTitle').textContent = 'Add New Student';
+            clearStudentForm();
+            populateStudentBatchOptions();
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function viewStudent(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (!student) return;
+
+            currentStudentId = studentId;
+            document.getElementById('studentModalTitle').textContent = 'Student Details';
+            populateStudentForm(student);
+            populateStudentBatchOptions();
+            populateEnrolledSubjects(student.subjects);
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function editStudent(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (!student) return;
+
+            currentStudentId = studentId;
+            document.getElementById('studentModalTitle').textContent = 'Edit Student';
+            populateStudentForm(student);
+            populateStudentBatchOptions();
+            populateEnrolledSubjects(student.subjects);
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+            currentStudentId = null;
+        }
+
+        function populateStudentForm(student) {
+            document.getElementById('studentId').value = student.id;
+            document.getElementById('studentName').value = student.name;
+            document.getElementById('studentEmail').value = student.email;
+            document.getElementById('studentPhone').value = student.phone;
+            document.getElementById('studentBatch').value = student.batch;
+            document.getElementById('studentRoll').value = student.rollNumber;
+            document.getElementById('attendancePercent').textContent = student.attendance + '%';
+            document.getElementById('attendanceBar').style.width = student.attendance + '%';
+            document.getElementById('studentGrade').value = student.grade;
+            document.getElementById('studentNotes').value = student.notes || '';
+        }
+
+        function clearStudentForm() {
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentEmail').value = '';
+            document.getElementById('studentPhone').value = '';
+            document.getElementById('studentBatch').value = '';
+            document.getElementById('studentRoll').value = '';
+            document.getElementById('attendancePercent').textContent = '0%';
+            document.getElementById('attendanceBar').style.width = '0%';
+            document.getElementById('studentGrade').value = '';
+            document.getElementById('studentNotes').value = '';
+        }
+
+        function populateStudentBatchOptions() {
+            const batchSelect = document.getElementById('studentBatch');
+            const batches = [...new Set(studentsData.map(s => s.batch))];
+            batchSelect.innerHTML = '<option value="">Select Batch</option>' + 
+                batches.map(batch => `<option value="${batch}">${batch}</option>`).join('');
+        }
+
+        function populateEnrolledSubjects(subjects) {
+            const container = document.getElementById('enrolledSubjects');
+            container.innerHTML = subjects.map(subject => 
+                `<div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                    ${subject}
+                </div>`
+            ).join('');
+        }
+
+        function saveStudent() {
+            const studentData = {
+                id: document.getElementById('studentId').value,
+                name: document.getElementById('studentName').value,
+                email: document.getElementById('studentEmail').value,
+                phone: document.getElementById('studentPhone').value,
+                batch: document.getElementById('studentBatch').value,
+                rollNumber: document.getElementById('studentRoll').value,
+                notes: document.getElementById('studentNotes').value
+            };
+
+            if (!studentData.name || !studentData.email || !studentData.batch) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+
+            if (currentStudentId) {
+                // Update existing student
+                const index = studentsData.findIndex(s => s.id === currentStudentId);
+                if (index !== -1) {
+                    studentsData[index] = { ...studentsData[index], ...studentData };
+                }
+                showToast('Student updated successfully', 'success');
+            } else {
+                // Add new student
+                const newStudent = {
+                    ...studentData,
+                    subjects: [],
+                    attendance: 0,
+                    grade: 'N/A',
+                    status: 'present'
+                };
+                studentsData.push(newStudent);
+                showToast('Student added successfully', 'success');
+            }
+
+            renderStudents();
+            updateStudentStats();
+            closeStudentModal();
+        }
+
+        // Attendance functions
+        function markAttendanceForStudent(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (!student) return;
+
+            currentStudentId = studentId;
+            document.getElementById('attendanceStudentName').value = student.name;
+            document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+            populateAttendanceSubjectOptions();
+            document.getElementById('attendanceModal').classList.remove('hidden');
+        }
+
+        function markAttendance() {
+            if (!currentStudentId) return;
+            markAttendanceForStudent(currentStudentId);
+        }
+
+        function closeAttendanceModal() {
+            document.getElementById('attendanceModal').classList.add('hidden');
+            currentStudentId = null;
+        }
+
+        function populateAttendanceSubjectOptions() {
+            const subjectSelect = document.getElementById('attendanceSubject');
+            const student = studentsData.find(s => s.id === currentStudentId);
+            if (student) {
+                subjectSelect.innerHTML = '<option value="">Select Subject</option>' + 
+                    student.subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('');
+            }
+        }
+
+        function saveAttendance() {
+            const status = document.querySelector('input[name="attendanceStatus"]:checked').value;
+            const date = document.getElementById('attendanceDate').value;
+            const subject = document.getElementById('attendanceSubject').value;
+            const remarks = document.getElementById('attendanceRemarks').value;
+
+            if (!subject) {
+                showToast('Please select a subject', 'error');
+                return;
+            }
+
+            // Update student status
+            const student = studentsData.find(s => s.id === currentStudentId);
+            if (student) {
+                student.status = status;
+                // Update attendance percentage (simplified)
+                if (status === 'present') {
+                    student.attendance = Math.min(100, student.attendance + 1);
+                } else if (status === 'absent') {
+                    student.attendance = Math.max(0, student.attendance - 1);
+                }
+            }
+
+            showToast(`Attendance marked as ${status}`, 'success');
+            renderStudents();
+            updateStudentStats();
+            closeAttendanceModal();
+        }
+
+        // Filter functions
+        function clearStudentFilters() {
+            document.getElementById('studentSearch').value = '';
+            document.getElementById('studentBatchFilter').value = '';
+            document.getElementById('studentSubjectFilter').value = '';
+            renderStudents();
+        }
+
+        // Export function
+        function exportStudentData() {
+            const csvContent = [
+                ['Student ID', 'Name', 'Email', 'Phone', 'Batch', 'Roll Number', 'Subjects', 'Attendance %', 'Grade', 'Status'],
+                ...studentsData.map(student => [
+                    student.id,
+                    student.name,
+                    student.email,
+                    student.phone,
+                    student.batch,
+                    student.rollNumber,
+                    student.subjects.join('; '),
+                    student.attendance,
+                    student.grade,
+                    student.status
+                ])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'students_data.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showToast('Student data exported successfully', 'success');
+        }
+
+        // Setup event listeners for student management
+        function setupStudentEventListeners() {
+            // Search functionality
+            document.getElementById('studentSearch').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const filteredStudents = studentsData.filter(student => 
+                    student.name.toLowerCase().includes(searchTerm) ||
+                    student.id.toLowerCase().includes(searchTerm) ||
+                    student.email.toLowerCase().includes(searchTerm)
+                );
+                renderFilteredStudents(filteredStudents);
+            });
+
+            // Batch filter
+            document.getElementById('studentBatchFilter').addEventListener('change', function() {
+                const batch = this.value;
+                const filteredStudents = batch ? 
+                    studentsData.filter(student => student.batch === batch) : 
+                    studentsData;
+                renderFilteredStudents(filteredStudents);
+            });
+
+            // Subject filter
+            document.getElementById('studentSubjectFilter').addEventListener('change', function() {
+                const subject = this.value;
+                const filteredStudents = subject ? 
+                    studentsData.filter(student => student.subjects.includes(subject)) : 
+                    studentsData;
+                renderFilteredStudents(filteredStudents);
+            });
+        }
+
+        function renderFilteredStudents(filteredStudents) {
+            const tbody = document.getElementById('studentsTable');
+            tbody.innerHTML = '';
+
+            filteredStudents.forEach(student => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-200 hover:bg-gray-50';
+                
+                const statusColor = student.status === 'present' ? 'text-green-600' : 
+                                  student.status === 'absent' ? 'text-red-600' : 'text-yellow-600';
+                const statusIcon = student.status === 'present' ? 'fa-check-circle' : 
+                                 student.status === 'absent' ? 'fa-times-circle' : 'fa-clock';
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4 text-gray-800 font-medium">${student.id}</td>
+                    <td class="py-3 px-4 text-gray-800">${student.name}</td>
+                    <td class="py-3 px-4">
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                            ${student.batch}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-gray-600">
+                        <div class="flex flex-wrap gap-1">
+                            ${student.subjects.map(subject => 
+                                `<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">${subject}</span>`
+                            ).join('')}
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: ${student.attendance}%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">${student.attendance}%</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="${statusColor}">
+                            <i class="fas ${statusIcon} mr-1"></i>
+                            ${student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex space-x-2">
+                            <button onclick="viewStudent('${student.id}')" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="editStudent('${student.id}')" class="text-green-600 hover:text-green-800">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="markAttendanceForStudent('${student.id}')" class="text-purple-600 hover:text-purple-800">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
         }
     </script>
 </body>
