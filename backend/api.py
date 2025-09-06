@@ -99,6 +99,51 @@ def init_db():
     )
     """)
 
+    # Attendance Records
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS attendance (
+        id TEXT PRIMARY KEY,
+        student_id TEXT,
+        faculty_id TEXT,
+        subject_id TEXT,
+        batch_id TEXT,
+        date TEXT,
+        time_slot TEXT,
+        status TEXT CHECK(status IN ('present','absent','late')),
+        remarks TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(student_id) REFERENCES users(id),
+        FOREIGN KEY(faculty_id) REFERENCES users(id),
+        FOREIGN KEY(subject_id) REFERENCES subjects(id),
+        FOREIGN KEY(batch_id) REFERENCES batches(id)
+    )
+    """)
+
+    # Student-Batch Mapping
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS student_batch_map (
+        student_id TEXT,
+        batch_id TEXT,
+        roll_number TEXT,
+        semester INTEGER,
+        PRIMARY KEY (student_id, batch_id),
+        FOREIGN KEY(student_id) REFERENCES users(id),
+        FOREIGN KEY(batch_id) REFERENCES batches(id)
+    )
+    """)
+
+    # Student-Subject Mapping
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS student_subject_map (
+        student_id TEXT,
+        subject_id TEXT,
+        enrollment_date TEXT,
+        PRIMARY KEY (student_id, subject_id),
+        FOREIGN KEY(student_id) REFERENCES users(id),
+        FOREIGN KEY(subject_id) REFERENCES subjects(id)
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -192,7 +237,7 @@ def delete(table, id):
 
 @app.route("/show_all", methods=["GET"])
 def show_all():
-    tables = ["users", "classrooms", "subjects", "faculty_subject_map", "batches", "timetable_slots"]
+    tables = ["users", "classrooms", "subjects", "faculty_subject_map", "batches", "timetable_slots", "attendance", "student_batch_map", "student_subject_map"]
     all_data = {}
     for table in tables:
         result = execute_query(f"SELECT * FROM {table}", fetch=True)
@@ -201,7 +246,7 @@ def show_all():
 
 @app.route("/table_all", methods=["GET"])
 def table_all():
-    tables = ["users", "classrooms", "subjects", "faculty_subject_map", "batches", "timetable_slots"]
+    tables = ["users", "classrooms", "subjects", "faculty_subject_map", "batches", "timetable_slots", "attendance", "student_batch_map", "student_subject_map"]
     html = "<h1>All Tables</h1>"
     for table in tables:
         result = execute_query(f"SELECT * FROM {table}", fetch=True)
@@ -490,6 +535,322 @@ def manage_faculty_availability():
             
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+
+# -------------------------
+# Student Management API Endpoints
+# -------------------------
+
+@app.route('/faculty/students', methods=['GET'])
+@require_auth
+def get_faculty_students():
+    """Get all students for faculty management"""
+    try:
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+        
+        # Get students with their batch and subject information
+        c.execute("""
+            SELECT 
+                u.id, u.name, u.email, u.role,
+                sbm.batch_id, b.name as batch_name, sbm.roll_number, sbm.semester,
+                GROUP_CONCAT(s.name) as subjects,
+                GROUP_CONCAT(s.id) as subject_ids
+            FROM users u
+            LEFT JOIN student_batch_map sbm ON u.id = sbm.student_id
+            LEFT JOIN batches b ON sbm.batch_id = b.id
+            LEFT JOIN student_subject_map ssm ON u.id = ssm.student_id
+            LEFT JOIN subjects s ON ssm.subject_id = s.id
+            WHERE u.role = 'student'
+            GROUP BY u.id, sbm.batch_id
+        """)
+        
+        students = c.fetchall()
+        students_data = []
+        
+        for student in students:
+            # Calculate attendance percentage
+            c.execute("""
+                SELECT 
+                    COUNT(*) as total_classes,
+                    SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present_classes
+                FROM attendance 
+                WHERE student_id = ?
+            """, (student[0],))
+            
+            attendance_data = c.fetchone()
+            total_classes = attendance_data[0] if attendance_data[0] else 0
+            present_classes = attendance_data[1] if attendance_data[1] else 0
+            attendance_percentage = round((present_classes / total_classes * 100), 2) if total_classes > 0 else 0
+            
+            # Get latest status
+            c.execute("""
+                SELECT status FROM attendance 
+                WHERE student_id = ? 
+                ORDER BY created_at DESC 
+                LIMIT 1
+            """, (student[0],))
+            
+            latest_status = c.fetchone()
+            current_status = latest_status[0] if latest_status else 'present'
+            
+            students_data.append({
+                'id': student[0],
+                'name': student[1],
+                'email': student[2],
+                'role': student[3],
+                'batch': student[5] if student[5] else 'N/A',
+                'rollNumber': student[6] if student[6] else 'N/A',
+                'semester': student[7] if student[7] else 1,
+                'subjects': student[8].split(',') if student[8] else [],
+                'attendance': attendance_percentage,
+                'status': current_status,
+                'phone': f"+1-555-{student[0][-4:]}",  # Demo phone number
+                'grade': 'A-' if attendance_percentage >= 90 else 'B+' if attendance_percentage >= 80 else 'B' if attendance_percentage >= 70 else 'C',
+                'notes': 'Good student' if attendance_percentage >= 80 else 'Needs improvement'
+            })
+        
+        conn.close()
+        return jsonify({'students': students_data})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# -------------------------
+# Attendance API Endpoints
+# -------------------------
+
+@app.route('/attendance', methods=['POST'])
+@require_auth
+def create_attendance():
+    """Create attendance record"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['student_id', 'faculty_id', 'subject_id', 'batch_id', 'date', 'time_slot', 'status']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Generate attendance ID
+        attendance_id = f"att_{uuid.uuid4().hex[:8]}"
+        
+        # Insert attendance record
+        query = """
+            INSERT INTO attendance (id, student_id, faculty_id, subject_id, batch_id, date, time_slot, status, remarks)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        
+        values = (
+            attendance_id,
+            data['student_id'],
+            data['faculty_id'],
+            data['subject_id'],
+            data['batch_id'],
+            data['date'],
+            data['time_slot'],
+            data['status'],
+            data.get('remarks', '')
+        )
+        
+        result = execute_query(query, values)
+        
+        if result is True:
+            return jsonify({
+                'status': 'success',
+                'message': 'Attendance recorded successfully',
+                'attendance_id': attendance_id
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to record attendance'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/attendance/bulk', methods=['POST'])
+@require_auth
+def create_bulk_attendance():
+    """Create multiple attendance records at once"""
+    try:
+        data = request.get_json()
+        
+        if 'attendance_records' not in data:
+            return jsonify({'error': 'Missing attendance_records field'}), 400
+        
+        attendance_records = data['attendance_records']
+        if not isinstance(attendance_records, list):
+            return jsonify({'error': 'attendance_records must be a list'}), 400
+        
+        # Prepare bulk insert data
+        bulk_data = []
+        for record in attendance_records:
+            attendance_id = f"att_{uuid.uuid4().hex[:8]}"
+            bulk_data.append((
+                attendance_id,
+                record['student_id'],
+                record['faculty_id'],
+                record['subject_id'],
+                record['batch_id'],
+                record['date'],
+                record['time_slot'],
+                record['status'],
+                record.get('remarks', '')
+            ))
+        
+        # Bulk insert
+        query = """
+            INSERT INTO attendance (id, student_id, faculty_id, subject_id, batch_id, date, time_slot, status, remarks)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        
+        result = execute_query(query, bulk_data, many=True)
+        
+        if result is True:
+            return jsonify({
+                'status': 'success',
+                'message': f'Bulk attendance recorded successfully for {len(attendance_records)} students',
+                'count': len(attendance_records)
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to record bulk attendance'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/attendance/history', methods=['GET'])
+@require_auth
+def get_attendance_history():
+    """Get attendance history with filters"""
+    try:
+        # Get query parameters
+        student_id = request.args.get('student_id')
+        subject_id = request.args.get('subject_id')
+        batch_id = request.args.get('batch_id')
+        from_date = request.args.get('from_date')
+        to_date = request.args.get('to_date')
+        
+        # Build query
+        query = """
+            SELECT 
+                a.id, a.student_id, a.faculty_id, a.subject_id, a.batch_id,
+                a.date, a.time_slot, a.status, a.remarks, a.created_at,
+                u.name as student_name, s.name as subject_name, b.name as batch_name
+            FROM attendance a
+            JOIN users u ON a.student_id = u.id
+            JOIN subjects s ON a.subject_id = s.id
+            JOIN batches b ON a.batch_id = b.id
+            WHERE 1=1
+        """
+        
+        params = []
+        
+        if student_id:
+            query += " AND a.student_id = ?"
+            params.append(student_id)
+        
+        if subject_id:
+            query += " AND a.subject_id = ?"
+            params.append(subject_id)
+            
+        if batch_id:
+            query += " AND a.batch_id = ?"
+            params.append(batch_id)
+            
+        if from_date:
+            query += " AND a.date >= ?"
+            params.append(from_date)
+            
+        if to_date:
+            query += " AND a.date <= ?"
+            params.append(to_date)
+        
+        query += " ORDER BY a.date DESC, a.created_at DESC"
+        
+        result = execute_query(query, tuple(params), fetch=True)
+        
+        if isinstance(result, list):
+            return jsonify({'attendance_history': result})
+        else:
+            return jsonify({'error': 'Failed to fetch attendance history'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/attendance/analytics', methods=['GET'])
+@require_auth
+def get_attendance_analytics():
+    """Get attendance analytics"""
+    try:
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+        
+        # Get query parameters
+        student_id = request.args.get('student_id')
+        subject_id = request.args.get('subject_id')
+        batch_id = request.args.get('batch_id')
+        from_date = request.args.get('from_date')
+        to_date = request.args.get('to_date')
+        
+        # Build base query
+        base_query = "FROM attendance WHERE 1=1"
+        params = []
+        
+        if student_id:
+            base_query += " AND student_id = ?"
+            params.append(student_id)
+        
+        if subject_id:
+            base_query += " AND subject_id = ?"
+            params.append(subject_id)
+            
+        if batch_id:
+            base_query += " AND batch_id = ?"
+            params.append(batch_id)
+            
+        if from_date:
+            base_query += " AND date >= ?"
+            params.append(from_date)
+            
+        if to_date:
+            base_query += " AND date <= ?"
+            params.append(to_date)
+        
+        # Get total records
+        total_query = f"SELECT COUNT(*) {base_query}"
+        c.execute(total_query, params)
+        total_records = c.fetchone()[0]
+        
+        # Get present records
+        present_query = f"SELECT COUNT(*) {base_query} AND status = 'present'"
+        c.execute(present_query, params)
+        present_records = c.fetchone()[0]
+        
+        # Get absent records
+        absent_query = f"SELECT COUNT(*) {base_query} AND status = 'absent'"
+        c.execute(absent_query, params)
+        absent_records = c.fetchone()[0]
+        
+        # Get late records
+        late_query = f"SELECT COUNT(*) {base_query} AND status = 'late'"
+        c.execute(late_query, params)
+        late_records = c.fetchone()[0]
+        
+        # Calculate percentages
+        overall_attendance = round((present_records / total_records * 100), 2) if total_records > 0 else 0
+        
+        analytics = {
+            'total_records': total_records,
+            'present_records': present_records,
+            'absent_records': absent_records,
+            'late_records': late_records,
+            'overall_attendance': overall_attendance
+        }
+        
+        conn.close()
+        return jsonify(analytics)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # -------------------------
 # Error Handlers

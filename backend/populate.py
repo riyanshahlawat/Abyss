@@ -103,16 +103,50 @@ def populate():
     r = requests.post(f"{BASE_URL}/create/users", json=admin_payload)
     safe_print("Admin User:", r)
 
-    # Add demo student user
-    student_payload = {
-        "id": "student_001",
-        "name": "Demo Student",
-        "email": "student@univ.edu",
-        "role": "student",
-        "password": hash_password("student123")
-    }
-    r = requests.post(f"{BASE_URL}/create/users", json=student_payload)
-    safe_print("Student User:", r)
+    # Add demo student users
+    students = [
+        {"id": "S001", "name": "John Doe", "email": "john.doe@student.edu", "batch": "ME1", "roll": "ME1-001", "subjects": ["S1", "S2", "S4"]},
+        {"id": "S002", "name": "Jane Smith", "email": "jane.smith@student.edu", "batch": "ME1", "roll": "ME1-002", "subjects": ["S1", "S2", "S4"]},
+        {"id": "S003", "name": "Mike Johnson", "email": "mike.johnson@student.edu", "batch": "ME2", "roll": "ME2-001", "subjects": ["S1", "S2"]},
+        {"id": "S004", "name": "Sarah Wilson", "email": "sarah.wilson@student.edu", "batch": "ME2", "roll": "ME2-002", "subjects": ["S1", "S2"]},
+        {"id": "S005", "name": "David Brown", "email": "david.brown@student.edu", "batch": "ME3", "roll": "ME3-001", "subjects": ["S3", "S5"]},
+        {"id": "S006", "name": "Emily Davis", "email": "emily.davis@student.edu", "batch": "ME3", "roll": "ME3-002", "subjects": ["S3", "S5"]},
+        {"id": "S007", "name": "Alex Miller", "email": "alex.miller@student.edu", "batch": "ME4", "roll": "ME4-001", "subjects": ["S2", "S3", "S4"]},
+        {"id": "S008", "name": "Lisa Garcia", "email": "lisa.garcia@student.edu", "batch": "ME4", "roll": "ME4-002", "subjects": ["S2", "S3", "S4"]},
+        {"id": "S009", "name": "Tom Wilson", "email": "tom.wilson@student.edu", "batch": "ME1", "roll": "ME1-003", "subjects": ["S1", "S2", "S4"]},
+        {"id": "S010", "name": "Anna Taylor", "email": "anna.taylor@student.edu", "batch": "ME2", "roll": "ME2-003", "subjects": ["S1", "S2"]}
+    ]
+    
+    for student in students:
+        student_payload = {
+            "id": student["id"],
+            "name": student["name"],
+            "email": student["email"],
+            "role": "student",
+            "password": hash_password("student123")
+        }
+        r = requests.post(f"{BASE_URL}/create/users", json=student_payload)
+        safe_print(f"Student {student['name']}:", r)
+        
+        # Add student-batch mapping
+        batch_mapping = {
+            "student_id": student["id"],
+            "batch_id": student["batch"],
+            "roll_number": student["roll"],
+            "semester": 3
+        }
+        r = requests.post(f"{BASE_URL}/create/student_batch_map", json=batch_mapping)
+        safe_print(f"Student-Batch Mapping {student['name']}:", r)
+        
+        # Add student-subject mappings
+        for subject_id in student["subjects"]:
+            subject_mapping = {
+                "student_id": student["id"],
+                "subject_id": subject_id,
+                "enrollment_date": "2024-01-01"
+            }
+            r = requests.post(f"{BASE_URL}/create/student_subject_map", json=subject_mapping)
+            safe_print(f"Student-Subject Mapping {student['name']}-{subject_id}:", r)
 
     # Add demo faculty user
     faculty_payload = {
