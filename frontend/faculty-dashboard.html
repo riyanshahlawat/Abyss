@@ -1330,7 +1330,7 @@
             `).join('');
         }
 
-        // Load timetable
+        // Load timetable using new API
         async function loadTimetable() {
             try {
                 const token = localStorage.getItem('token');
@@ -1342,47 +1342,56 @@
                 });
 
                 if (response.ok) {
-                    timetableData = await response.json();
+                    const data = await response.json();
+                    timetableData = data;
                 } else {
                     // Fallback to demo data
-                    timetableData = [
-                        { day: 'Monday', time: '09:00-10:00', subject: 'Data Structures', batch: 'CS-2024-A', classroom: 'LH-101' },
-                        { day: 'Monday', time: '10:00-11:00', subject: 'Data Structures', batch: 'CS-2024-A', classroom: 'LH-101' },
-                        { day: 'Monday', time: '11:00-12:00', subject: 'Algorithms', batch: 'CS-2024-B', classroom: 'LH-102' },
-                        { day: 'Tuesday', time: '09:00-10:00', subject: 'Database Systems', batch: 'CS-2024-C', classroom: 'LH-103' },
-                        { day: 'Tuesday', time: '10:00-11:00', subject: 'Algorithms', batch: 'CS-2024-A', classroom: 'LH-101' },
-                        { day: 'Wednesday', time: '09:00-10:00', subject: 'Data Structures', batch: 'CS-2024-B', classroom: 'LH-102' },
-                        { day: 'Wednesday', time: '10:00-11:00', subject: 'Database Systems', batch: 'CS-2024-A', classroom: 'LH-103' },
-                        { day: 'Thursday', time: '09:00-10:00', subject: 'Algorithms', batch: 'CS-2024-C', classroom: 'LH-101' },
-                        { day: 'Thursday', time: '10:00-11:00', subject: 'Data Structures', batch: 'CS-2024-C', classroom: 'LH-102' },
-                        { day: 'Friday', time: '09:00-10:00', subject: 'Database Systems', batch: 'CS-2024-B', classroom: 'LH-103' }
-                    ];
+                    timetableData = getFallbackTimetableData();
                 }
                 renderTimetable();
             } catch (error) {
                 console.error('Error loading timetable:', error);
                 // Use demo data
-                timetableData = [
-                    { day: 'Monday', time: '09:00-10:00', subject: 'Data Structures', batch: 'CS-2024-A', classroom: 'LH-101' },
-                    { day: 'Monday', time: '10:00-11:00', subject: 'Data Structures', batch: 'CS-2024-A', classroom: 'LH-101' },
-                    { day: 'Monday', time: '11:00-12:00', subject: 'Algorithms', batch: 'CS-2024-B', classroom: 'LH-102' },
-                    { day: 'Tuesday', time: '09:00-10:00', subject: 'Database Systems', batch: 'CS-2024-C', classroom: 'LH-103' },
-                    { day: 'Tuesday', time: '10:00-11:00', subject: 'Algorithms', batch: 'CS-2024-A', classroom: 'LH-101' },
-                    { day: 'Wednesday', time: '09:00-10:00', subject: 'Data Structures', batch: 'CS-2024-B', classroom: 'LH-102' },
-                    { day: 'Wednesday', time: '10:00-11:00', subject: 'Database Systems', batch: 'CS-2024-A', classroom: 'LH-103' },
-                    { day: 'Thursday', time: '09:00-10:00', subject: 'Algorithms', batch: 'CS-2024-C', classroom: 'LH-101' },
-                    { day: 'Thursday', time: '10:00-11:00', subject: 'Data Structures', batch: 'CS-2024-C', classroom: 'LH-102' },
-                    { day: 'Friday', time: '09:00-10:00', subject: 'Database Systems', batch: 'CS-2024-B', classroom: 'LH-103' }
-                ];
+                timetableData = getFallbackTimetableData();
                 renderTimetable();
             }
+        }
+        
+        function getFallbackTimetableData() {
+            return {
+                days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                time_slots: ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'],
+                timetable: {
+                    'Monday': {
+                        '09:00-10:00': [{ subject_name: 'Data Structures', batch_name: 'CS-2024-A', classroom_name: 'LH-101' }],
+                        '10:00-11:00': [{ subject_name: 'Data Structures', batch_name: 'CS-2024-A', classroom_name: 'LH-101' }],
+                        '11:00-12:00': [{ subject_name: 'Algorithms', batch_name: 'CS-2024-B', classroom_name: 'LH-102' }]
+                    },
+                    'Tuesday': {
+                        '09:00-10:00': [{ subject_name: 'Database Systems', batch_name: 'CS-2024-C', classroom_name: 'LH-103' }],
+                        '10:00-11:00': [{ subject_name: 'Algorithms', batch_name: 'CS-2024-A', classroom_name: 'LH-101' }]
+                    },
+                    'Wednesday': {
+                        '09:00-10:00': [{ subject_name: 'Data Structures', batch_name: 'CS-2024-B', classroom_name: 'LH-101' }],
+                        '10:00-11:00': [{ subject_name: 'Database Systems', batch_name: 'CS-2024-A', classroom_name: 'LH-103' }]
+                    },
+                    'Thursday': {
+                        '09:00-10:00': [{ subject_name: 'Algorithms', batch_name: 'CS-2024-C', classroom_name: 'LH-102' }],
+                        '10:00-11:00': [{ subject_name: 'Data Structures', batch_name: 'CS-2024-C', classroom_name: 'LH-101' }]
+                    },
+                    'Friday': {
+                        '09:00-10:00': [{ subject_name: 'Database Systems', batch_name: 'CS-2024-B', classroom_name: 'LH-103' }]
+                    }
+                }
+            };
         }
 
         // Render timetable
         function renderTimetable() {
             const timetableGrid = document.getElementById('timetableGrid');
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const timeSlots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'];
+            const days = timetableData.days || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            const timeSlots = timetableData.time_slots || ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'];
+            const timetable = timetableData.timetable || {};
 
             let html = '<table class="w-full text-gray-800">';
             html += '<thead><tr class="border-b border-gray-200"><th class="p-3 text-left font-semibold">Time</th>';
@@ -1391,18 +1400,30 @@
             });
             html += '</tr></thead><tbody>';
 
+            // Add validation status if available
+            if (timetableData.validation && timetableData.validation.status) {
+                html += `<tr><td colspan="${days.length + 1}" class="p-3 text-center ${timetableData.validation.status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                    <i class="fas fa-${timetableData.validation.status === 'OK' ? 'check-circle' : 'exclamation-triangle'} mr-2"></i>
+                    Timetable Status: ${timetableData.validation.status}
+                    ${timetableData.validation.errors && timetableData.validation.errors.length > 0 ? 
+                        `<br><small>Issues: ${timetableData.validation.errors.join(', ')}</small>` : ''}
+                </td></tr>`;
+            }
+
             timeSlots.forEach(timeSlot => {
-                html += `<tr class="border-b border-gray-100"><td class="p-3 font-medium">${timeSlot}</td>`;
+                html += `<tr class="border-b border-gray-100"><td class="p-3 font-medium bg-gray-50">${timeSlot}</td>`;
                 days.forEach(day => {
-                    const classData = timetableData.find(item => item.day === day && item.time === timeSlot);
-                    if (classData) {
-                        html += `<td class="p-3 text-center">
-                            <div class="bg-blue-100 rounded-lg p-2 border border-blue-200">
-                                <div class="font-medium text-sm text-gray-800">${classData.subject}</div>
-                                <div class="text-xs text-gray-600">${classData.batch}</div>
-                                <div class="text-xs text-gray-500">${classData.classroom}</div>
-                            </div>
-                        </td>`;
+                    const classes = timetable[day] && timetable[day][timeSlot] ? timetable[day][timeSlot] : [];
+                    if (classes.length > 0) {
+                        html += `<td class="p-3 text-center">`;
+                        classes.forEach(cls => {
+                            html += `<div class="bg-blue-100 rounded-lg p-2 border border-blue-200 mb-1">
+                                <div class="font-medium text-sm text-gray-800">${cls.subject_name || 'Unknown Subject'}</div>
+                                <div class="text-xs text-gray-600">${cls.batch_name || 'Unknown Batch'}</div>
+                                <div class="text-xs text-blue-600">${cls.classroom_name || 'Unknown Room'}</div>
+                            </div>`;
+                        });
+                        html += '</td>';
                     } else {
                         html += '<td class="p-3 text-center text-gray-400">Free</td>';
                     }
