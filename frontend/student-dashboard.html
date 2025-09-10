@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Smart Classroom & Timetable Scheduler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-right: 3px solid #3b82f6;
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            to { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .timetable-cell {
+            min-height: 60px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .timetable-cell:hover {
+            background-color: #f3f4f6;
+            transform: scale(1.02);
+        }
+        
+        .subject-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 8px;
+            margin: 2px;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+        
+        .attendance-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .attendance-fill {
+            height: 100%;
+            background: #10b981;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Sidebar Navigation -->
+    <div class="flex h-screen">
+        <div class="sidebar w-64 p-6">
+            <!-- Logo -->
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3">
+                    <i class="fas fa-graduation-cap text-blue-600 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold text-lg">Student Portal</h1>
+                    <p class="text-blue-100 text-sm">Smart Scheduler</p>
+                </div>
+            </div>
+            
+            <!-- User Info -->
+            <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-semibold" id="studentName">Loading...</h3>
+                        <p class="text-blue-100 text-sm" id="studentRoll">Roll: Loading...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="space-y-2">
+                <a href="#" class="nav-item active flex items-center px-4 py-3 text-white rounded-lg" onclick="showSection('dashboard')">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-white rounded-lg" onclick="showSection('timetable')">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    Timetable
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-white rounded-lg" onclick="showSection('attendance')">
+                    <i class="fas fa-check-circle mr-3"></i>
+                    Attendance
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-white rounded-lg" onclick="showSection('assignments')">
+                    <i class="fas fa-tasks mr-3"></i>
+                    Assignments
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-white rounded-lg" onclick="showSection('grades')">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Grades
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-white rounded-lg" onclick="showSection('notifications')">
+                    <i class="fas fa-bell mr-3"></i>
+                    Notifications
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-white rounded-lg" onclick="showSection('profile')">
+                    <i class="fas fa-user-circle mr-3"></i>
+                    Profile
+                </a>
+            </nav>
+            
+            <!-- Logout Button -->
+            <div class="mt-8">
+                <button onclick="logout()" class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-8 overflow-y-auto">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-2">Student Dashboard</h2>
+                    <p class="text-blue-100">Welcome back! Here's your academic overview.</p>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Overall Attendance</p>
+                                <p class="text-3xl font-bold text-green-600" id="overallAttendance">85%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Current GPA</p>
+                                <p class="text-3xl font-bold text-blue-600" id="currentGPA">3.7</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Pending Assignments</p>
+                                <p class="text-3xl font-bold text-orange-600" id="pendingAssignments">3</p>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-tasks text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Next Class</p>
+                                <p class="text-lg font-bold text-purple-600" id="nextClass">Math - 10:00 AM</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clock text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Today's Schedule -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Today's Schedule</h3>
+                        <div id="todaysSchedule">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <p class="font-semibold text-gray-800">Mathematics</p>
+                                            <p class="text-sm text-gray-600">Room 101 • 09:00 - 10:00</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm text-green-600 font-semibold">Present</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <p class="font-semibold text-gray-800">Physics</p>
+                                            <p class="text-sm text-gray-600">Lab 205 • 10:30 - 11:30</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm text-blue-600 font-semibold">Upcoming</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Notifications -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Recent Notifications</h3>
+                        <div id="recentNotifications">
+                            <div class="space-y-3">
+                                <div class="flex items-start p-3 bg-yellow-50 rounded-lg">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Assignment Due</p>
+                                        <p class="text-sm text-gray-600">Math assignment due tomorrow</p>
+                                        <p class="text-xs text-gray-500">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start p-3 bg-blue-50 rounded-lg">
+                                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Class Cancelled</p>
+                                        <p class="text-sm text-gray-600">Chemistry lab cancelled today</p>
+                                        <p class="text-xs text-gray-500">1 day ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Timetable Section -->
+            <div id="timetable" class="content-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-2">My Timetable</h2>
+                    <p class="text-blue-100">View your weekly class schedule</p>
+                </div>
+                
+                <div class="glass-card rounded-xl p-6">
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold text-gray-800">Weekly Schedule</h3>
+                            <div class="flex space-x-2">
+                                <button onclick="previousWeek()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold" id="currentWeek">Week of Dec 16, 2024</span>
+                                <button onclick="nextWeek()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left p-4 font-semibold text-gray-600">Time</th>
+                                    <th class="text-center p-4 font-semibold text-gray-600">Monday</th>
+                                    <th class="text-center p-4 font-semibold text-gray-600">Tuesday</th>
+                                    <th class="text-center p-4 font-semibold text-gray-600">Wednesday</th>
+                                    <th class="text-center p-4 font-semibold text-gray-600">Thursday</th>
+                                    <th class="text-center p-4 font-semibold text-gray-600">Friday</th>
+                                    <th class="text-center p-4 font-semibold text-gray-600">Saturday</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timetableBody">
+                                <!-- Timetable will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attendance Section -->
+            <div id="attendance" class="content-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-2">Attendance Tracking</h2>
+                    <p class="text-blue-100">Monitor your attendance across all subjects</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Overall Attendance -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Overall Attendance</h3>
+                        <div class="text-center">
+                            <div class="w-32 h-32 mx-auto mb-4 relative">
+                                <svg class="w-32 h-32 transform -rotate-90">
+                                    <circle cx="64" cy="64" r="56" stroke="#e5e7eb" stroke-width="8" fill="none"></circle>
+                                    <circle cx="64" cy="64" r="56" stroke="#10b981" stroke-width="8" fill="none" 
+                                            stroke-dasharray="351.86" stroke-dashoffset="52.78" stroke-linecap="round"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-gray-800">85%</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600">Current Attendance</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Subject-wise Attendance -->
+                    <div class="lg:col-span-2 glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Subject-wise Attendance</h3>
+                        <div id="subjectAttendance" class="space-y-4">
+                            <!-- Subject attendance items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Attendance History -->
+                <div class="mt-8 glass-card rounded-xl p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Recent Attendance History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left p-4 font-semibold text-gray-600">Date</th>
+                                    <th class="text-left p-4 font-semibold text-gray-600">Subject</th>
+                                    <th class="text-left p-4 font-semibold text-gray-600">Time</th>
+                                    <th class="text-center p-4 font-semibold text-gray-600">Status</th>
+                                    <th class="text-left p-4 font-semibold text-gray-600">Faculty</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceHistory">
+                                <!-- Attendance history will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Assignments Section -->
+            <div id="assignments" class="content-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-2">Assignments & Projects</h2>
+                    <p class="text-blue-100">Track your assignments and submission deadlines</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Pending Assignments -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Pending Assignments</h3>
+                        <div id="pendingAssignmentsList" class="space-y-4">
+                            <!-- Pending assignments will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Completed Assignments -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Recently Submitted</h3>
+                        <div id="completedAssignmentsList" class="space-y-4">
+                            <!-- Completed assignments will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Grades Section -->
+            <div id="grades" class="content-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-2">Grades & Performance</h2>
+                    <p class="text-blue-100">View your academic performance and grades</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- GPA Overview -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">GPA Overview</h3>
+                        <div class="text-center">
+                            <div class="w-40 h-40 mx-auto mb-4 relative">
+                                <svg class="w-40 h-40 transform -rotate-90">
+                                    <circle cx="80" cy="80" r="70" stroke="#e5e7eb" stroke-width="12" fill="none"></circle>
+                                    <circle cx="80" cy="80" r="70" stroke="#3b82f6" stroke-width="12" fill="none" 
+                                            stroke-dasharray="439.82" stroke-dashoffset="87.96" stroke-linecap="round"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div>
+                                        <span class="text-3xl font-bold text-gray-800">3.7</span>
+                                        <p class="text-sm text-gray-600">Current GPA</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Subject Grades -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Subject Grades</h3>
+                        <div id="subjectGrades" class="space-y-4">
+                            <!-- Subject grades will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notifications Section -->
+            <div id="notifications" class="content-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-2">Notifications</h2>
+                    <p class="text-blue-100">Stay updated with important announcements</p>
+                </div>
+                
+                <div class="glass-card rounded-xl p-6">
+                    <div class="space-y-4" id="notificationsList">
+                        <!-- Notifications will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Section -->
+            <div id="profile" class="content-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-2">My Profile</h2>
+                    <p class="text-blue-100">Manage your personal information and settings</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Personal Information -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Personal Information</h3>
+                        <div id="profileInfo">
+                            <!-- Profile information will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Academic Information -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Academic Information</h3>
+                        <div id="academicInfo">
+                            <!-- Academic information will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentStudent = null;
+        let currentWeek = 0;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStudentData();
+            loadDashboardData();
+            generateTimetable();
+            loadAttendanceData();
+            loadAssignments();
+            loadGrades();
+            loadNotifications();
+            loadProfile();
+        });
+        
+        // Navigation functions
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked nav item
+            event.target.classList.add('active');
+        }
+        
+        // Load student data
+        async function loadStudentData() {
+            try {
+                const response = await fetch('http://localhost:5000/student/profile');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error loading student profile:', data.error);
+                    // Fallback to mock data
+                    currentStudent = {
+                        id: 'student_001',
+                        name: 'John Doe',
+                        email: 'john.doe@university.edu',
+                        rollNumber: 'CS2024001',
+                        semester: 3,
+                        department: 'Computer Science',
+                        batch: 'CS-2024',
+                        phone: '+1-555-0123',
+                        address: '123 University Ave, Campus City'
+                    };
+                } else {
+                    currentStudent = data;
+                }
+                
+                document.getElementById('studentName').textContent = currentStudent.name;
+                document.getElementById('studentRoll').textContent = `Roll: ${currentStudent.rollNumber}`;
+            } catch (error) {
+                console.error('Error loading student data:', error);
+                // Fallback to mock data
+                currentStudent = {
+                    id: 'student_001',
+                    name: 'John Doe',
+                    email: 'john.doe@university.edu',
+                    rollNumber: 'CS2024001',
+                    semester: 3,
+                    department: 'Computer Science',
+                    batch: 'CS-2024',
+                    phone: '+1-555-0123',
+                    address: '123 University Ave, Campus City'
+                };
+                
+                document.getElementById('studentName').textContent = currentStudent.name;
+                document.getElementById('studentRoll').textContent = `Roll: ${currentStudent.rollNumber}`;
+            }
+        }
+        
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('http://localhost:5000/student/dashboard-stats');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error loading dashboard stats:', data.error);
+                    // Use fallback data
+                    document.getElementById('overallAttendance').textContent = '85%';
+                    document.getElementById('currentGPA').textContent = '3.7';
+                    document.getElementById('pendingAssignments').textContent = '3';
+                    document.getElementById('nextClass').textContent = 'Math - 10:00 AM';
+                } else {
+                    document.getElementById('overallAttendance').textContent = `${data.overall_attendance}%`;
+                    document.getElementById('currentGPA').textContent = data.current_gpa;
+                    document.getElementById('pendingAssignments').textContent = data.pending_assignments;
+                    document.getElementById('nextClass').textContent = `${data.next_class.subject} - ${data.next_class.time}`;
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                // Use fallback data
+                document.getElementById('overallAttendance').textContent = '85%';
+                document.getElementById('currentGPA').textContent = '3.7';
+                document.getElementById('pendingAssignments').textContent = '3';
+                document.getElementById('nextClass').textContent = 'Math - 10:00 AM';
+            }
+        }
+        
+        // Generate timetable using new API
+        async function generateTimetable() {
+            try {
+                const response = await fetch('http://localhost:5000/student/timetable');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error loading timetable:', data.error);
+                    // Use fallback data
+                    generateFallbackTimetable();
+                } else {
+                    generateTimetableFromNewAPI(data);
+                }
+            } catch (error) {
+                console.error('Error loading timetable:', error);
+                generateFallbackTimetable();
+            }
+        }
+        
+        function generateFallbackTimetable() {
+            const timetableData = {
+                '09:00-10:00': ['Math', 'Physics', 'Math', 'Chemistry', 'Math', 'Free'],
+                '10:00-11:00': ['Physics', 'Math', 'Chemistry', 'Math', 'Physics', 'Free'],
+                '11:00-12:00': ['Chemistry', 'Chemistry', 'Physics', 'Physics', 'Chemistry', 'Free'],
+                '12:00-13:00': ['Free', 'Free', 'Free', 'Free', 'Free', 'Free'],
+                '14:00-15:00': ['Lab', 'Lab', 'Free', 'Lab', 'Lab', 'Free'],
+                '15:00-16:00': ['Lab', 'Lab', 'Lab', 'Free', 'Free', 'Free']
+            };
+            
+            const tbody = document.getElementById('timetableBody');
+            tbody.innerHTML = '';
+            
+            Object.entries(timetableData).forEach(([time, subjects]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-4 font-semibold text-gray-600">${time}</td>
+                    ${subjects.map(subject => `
+                        <td class="timetable-cell text-center p-2">
+                            ${subject !== 'Free' ? `<div class="subject-card">${subject}</div>` : ''}
+                        </td>
+                    `).join('')}
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function generateTimetableFromData(timetableData) {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const timeSlots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'];
+            
+            // Create a 2D array to store timetable data
+            const timetable = {};
+            timeSlots.forEach(time => {
+                timetable[time] = {};
+                days.forEach(day => {
+                    timetable[time][day] = null;
+                });
+            });
+            
+            // Populate timetable with actual data
+            timetableData.forEach(slot => {
+                if (timetable[slot.time] && timetable[slot.time][slot.day]) {
+                    timetable[slot.time][slot.day] = {
+                        subject: slot.subject,
+                        faculty: slot.faculty,
+                        classroom: slot.classroom
+                    };
+                }
+            });
+            
+            const tbody = document.getElementById('timetableBody');
+            tbody.innerHTML = '';
+            
+            timeSlots.forEach(time => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-4 font-semibold text-gray-600">${time}</td>
+                    ${days.map(day => {
+                        const slot = timetable[time][day];
+                        return `
+                            <td class="timetable-cell text-center p-2">
+                                ${slot ? `<div class="subject-card">${slot.subject}</div>` : ''}
+                            </td>
+                        `;
+                    }).join('')}
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Load attendance data
+        async function loadAttendanceData() {
+            try {
+                const response = await fetch('http://localhost:5000/student/attendance');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error loading attendance data:', data.error);
+                    loadFallbackAttendanceData();
+                } else {
+                    loadAttendanceFromData(data);
+                }
+            } catch (error) {
+                console.error('Error loading attendance data:', error);
+                loadFallbackAttendanceData();
+            }
+        }
+        
+        function loadFallbackAttendanceData() {
+            const subjectAttendance = [
+                { subject: 'Mathematics', attendance: 92, total: 25, present: 23 },
+                { subject: 'Physics', attendance: 88, total: 25, present: 22 },
+                { subject: 'Chemistry', attendance: 85, total: 25, present: 21 },
+                { subject: 'Computer Science', attendance: 90, total: 25, present: 22 }
+            ];
+            
+            const container = document.getElementById('subjectAttendance');
+            container.innerHTML = subjectAttendance.map(item => `
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">${item.subject}</p>
+                        <p class="text-sm text-gray-600">${item.present}/${item.total} classes</p>
+                    </div>
+                    <div class="w-32">
+                        <div class="attendance-bar">
+                            <div class="attendance-fill" style="width: ${item.attendance}%"></div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">${item.attendance}%</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Load attendance history
+            const historyData = [
+                { date: '2024-12-16', subject: 'Mathematics', time: '09:00-10:00', status: 'Present', faculty: 'Dr. Smith' },
+                { date: '2024-12-16', subject: 'Physics', time: '10:00-11:00', status: 'Present', faculty: 'Prof. Johnson' },
+                { date: '2024-12-15', subject: 'Chemistry', time: '11:00-12:00', status: 'Absent', faculty: 'Dr. Brown' },
+                { date: '2024-12-15', subject: 'Computer Science', time: '14:00-15:00', status: 'Present', faculty: 'Prof. Davis' }
+            ];
+            
+            const historyContainer = document.getElementById('attendanceHistory');
+            historyContainer.innerHTML = historyData.map(item => `
+                <tr class="border-b">
+                    <td class="p-4">${item.date}</td>
+                    <td class="p-4">${item.subject}</td>
+                    <td class="p-4">${item.time}</td>
+                    <td class="p-4 text-center">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${
+                            item.status === 'Present' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }">${item.status}</span>
+                    </td>
+                    <td class="p-4">${item.faculty}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function loadAttendanceFromData(data) {
+            // Update overall attendance circle
+            const overallPercentage = data.overall.percentage;
+            const circle = document.querySelector('.attendance-bar circle:last-child');
+            if (circle) {
+                const circumference = 2 * Math.PI * 56; // radius = 56
+                const offset = circumference - (overallPercentage / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+            }
+            
+            // Update subject-wise attendance
+            const container = document.getElementById('subjectAttendance');
+            container.innerHTML = data.by_subject.map(item => `
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">${item.subject}</p>
+                        <p class="text-sm text-gray-600">${item.present}/${item.total} classes</p>
+                    </div>
+                    <div class="w-32">
+                        <div class="attendance-bar">
+                            <div class="attendance-fill" style="width: ${item.percentage}%"></div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">${item.percentage}%</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Update attendance history
+            const historyContainer = document.getElementById('attendanceHistory');
+            historyContainer.innerHTML = data.history.map(item => `
+                <tr class="border-b">
+                    <td class="p-4">${item.date}</td>
+                    <td class="p-4">${item.subject}</td>
+                    <td class="p-4">${item.time}</td>
+                    <td class="p-4 text-center">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${
+                            item.status === 'present' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
+                    </td>
+                    <td class="p-4">${item.faculty}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Load assignments
+        async function loadAssignments() {
+            try {
+                const response = await fetch('http://localhost:5000/student/assignments');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error loading assignments:', data.error);
+                    loadFallbackAssignments();
+                } else {
+                    loadAssignmentsFromData(data);
+                }
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+                loadFallbackAssignments();
+            }
+        }
+        
+        function loadFallbackAssignments() {
+            const pendingAssignments = [
+                { title: 'Math Assignment 3', subject: 'Mathematics', dueDate: '2024-12-20', status: 'Pending' },
+                { title: 'Physics Lab Report', subject: 'Physics', dueDate: '2024-12-22', status: 'Pending' },
+                { title: 'Chemistry Project', subject: 'Chemistry', dueDate: '2024-12-25', status: 'Pending' }
+            ];
+            
+            const completedAssignments = [
+                { title: 'Math Assignment 2', subject: 'Mathematics', submittedDate: '2024-12-15', grade: 'A-' },
+                { title: 'Physics Quiz', subject: 'Physics', submittedDate: '2024-12-14', grade: 'B+' },
+                { title: 'Chemistry Lab', subject: 'Chemistry', submittedDate: '2024-12-13', grade: 'A' }
+            ];
+            
+            document.getElementById('pendingAssignmentsList').innerHTML = pendingAssignments.map(assignment => `
+                <div class="p-4 bg-orange-50 rounded-lg border-l-4 border-orange-400">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${assignment.title}</h4>
+                            <p class="text-sm text-gray-600">${assignment.subject}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-orange-600 font-semibold">Due: ${assignment.dueDate}</p>
+                            <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">${assignment.status}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('completedAssignmentsList').innerHTML = completedAssignments.map(assignment => `
+                <div class="p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${assignment.title}</h4>
+                            <p class="text-sm text-gray-600">${assignment.subject}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-green-600 font-semibold">Submitted: ${assignment.submittedDate}</p>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Grade: ${assignment.grade}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function loadAssignmentsFromData(data) {
+            document.getElementById('pendingAssignmentsList').innerHTML = data.pending.map(assignment => `
+                <div class="p-4 bg-orange-50 rounded-lg border-l-4 border-orange-400">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${assignment.title}</h4>
+                            <p class="text-sm text-gray-600">${assignment.subject}</p>
+                            <p class="text-xs text-gray-500 mt-1">${assignment.description}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-orange-600 font-semibold">Due: ${assignment.due_date}</p>
+                            <p class="text-xs text-gray-500">${assignment.points} points</p>
+                            <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">${assignment.status}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('completedAssignmentsList').innerHTML = data.completed.map(assignment => `
+                <div class="p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${assignment.title}</h4>
+                            <p class="text-sm text-gray-600">${assignment.subject}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-green-600 font-semibold">Submitted: ${assignment.submitted_date}</p>
+                            <p class="text-xs text-gray-500">${assignment.points_earned}/${assignment.total_points} points</p>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Grade: ${assignment.grade}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Load grades
+        async function loadGrades() {
+            try {
+                const response = await fetch('http://localhost:5000/student/grades');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error loading grades:', data.error);
+                    loadFallbackGrades();
+                } else {
+                    loadGradesFromData(data);
+                }
+            } catch (error) {
+                console.error('Error loading grades:', error);
+                loadFallbackGrades();
+            }
+        }
+        
+        function loadFallbackGrades() {
+            const subjectGrades = [
+                { subject: 'Mathematics', grade: 'A-', gpa: 3.7, credits: 4 },
+                { subject: 'Physics', grade: 'B+', gpa: 3.3, credits: 4 },
+                { subject: 'Chemistry', grade: 'A', gpa: 4.0, credits: 3 },
+                { subject: 'Computer Science', grade: 'A-', gpa: 3.7, credits: 4 }
+            ];
+            
+            document.getElementById('subjectGrades').innerHTML = subjectGrades.map(item => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-semibold text-gray-800">${item.subject}</p>
+                        <p class="text-sm text-gray-600">${item.credits} credits</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-gray-800">${item.grade}</p>
+                        <p class="text-sm text-gray-600">GPA: ${item.gpa}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function loadGradesFromData(data) {
+            // Update overall GPA circle
+            const overallGPA = data.overall_gpa;
+            const circle = document.querySelector('#grades .glass-card svg circle:last-child');
+            if (circle) {
+                const circumference = 2 * Math.PI * 70; // radius = 70
+                const offset = circumference - (overallGPA / 4.0) * circumference; // Assuming 4.0 scale
+                circle.style.strokeDashoffset = offset;
+            }
+            
+            // Update GPA text
+            const gpaText = document.querySelector('#grades .glass-card .absolute div span');
+            if (gpaText) {
+                gpaText.textContent = overallGPA;
+            }
+            
+            document.getElementById('subjectGrades').innerHTML = data.subject_grades.map(item => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-semibold text-gray-800">${item.subject}</p>
+                        <p class="text-sm text-gray-600">${item.credits} credits</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-gray-800">${item.grade}</p>
+                        <p class="text-sm text-gray-600">GPA: ${item.gpa}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Load notifications
+        async function loadNotifications() {
+            try {
+                const response = await fetch('http://localhost:5000/student/notifications');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error loading notifications:', data.error);
+                    loadFallbackNotifications();
+                } else {
+                    loadNotificationsFromData(data.notifications);
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                loadFallbackNotifications();
+            }
+        }
+        
+        function loadFallbackNotifications() {
+            const notifications = [
+                { type: 'assignment', title: 'Assignment Due', message: 'Math Assignment 3 is due tomorrow', time: '2 hours ago', urgent: true },
+                { type: 'class', title: 'Class Cancelled', message: 'Chemistry lab cancelled today', time: '1 day ago', urgent: false },
+                { type: 'grade', title: 'Grade Posted', message: 'Physics quiz grades are now available', time: '2 days ago', urgent: false },
+                { type: 'announcement', title: 'Holiday Notice', message: 'University will be closed on Dec 25th', time: '3 days ago', urgent: false }
+            ];
+            
+            document.getElementById('notificationsList').innerHTML = notifications.map(notification => `
+                <div class="flex items-start p-4 ${notification.urgent ? 'bg-red-50 border-l-4 border-red-400' : 'bg-gray-50'} rounded-lg">
+                    <div class="w-8 h-8 ${notification.urgent ? 'bg-red-100' : 'bg-blue-100'} rounded-full flex items-center justify-center mr-3 mt-1">
+                        <i class="fas ${notification.type === 'assignment' ? 'fa-tasks' : notification.type === 'class' ? 'fa-chalkboard' : notification.type === 'grade' ? 'fa-chart-line' : 'fa-bullhorn'} ${notification.urgent ? 'text-red-600' : 'text-blue-600'} text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-gray-800">${notification.title}</h4>
+                        <p class="text-sm text-gray-600">${notification.message}</p>
+                        <p class="text-xs text-gray-500 mt-1">${notification.time}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function loadNotificationsFromData(notifications) {
+            document.getElementById('notificationsList').innerHTML = notifications.map(notification => {
+                const timeAgo = getTimeAgo(notification.created_at);
+                return `
+                    <div class="flex items-start p-4 ${notification.urgent ? 'bg-red-50 border-l-4 border-red-400' : 'bg-gray-50'} rounded-lg">
+                        <div class="w-8 h-8 ${notification.urgent ? 'bg-red-100' : 'bg-blue-100'} rounded-full flex items-center justify-center mr-3 mt-1">
+                            <i class="fas ${notification.type === 'assignment' ? 'fa-tasks' : notification.type === 'class' ? 'fa-chalkboard' : notification.type === 'grade' ? 'fa-chart-line' : 'fa-bullhorn'} ${notification.urgent ? 'text-red-600' : 'text-blue-600'} text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">${notification.title}</h4>
+                            <p class="text-sm text-gray-600">${notification.message}</p>
+                            <p class="text-xs text-gray-500 mt-1">${timeAgo}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+            return `${Math.floor(diffInSeconds / 86400)} days ago`;
+        }
+        
+        // Load profile
+        function loadProfile() {
+            if (!currentStudent) return;
+            
+            document.getElementById('profileInfo').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Full Name</label>
+                        <p class="text-gray-800">${currentStudent.name}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Email</label>
+                        <p class="text-gray-800">${currentStudent.email}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Phone</label>
+                        <p class="text-gray-800">${currentStudent.phone || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Address</label>
+                        <p class="text-gray-800">${currentStudent.address || 'N/A'}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('academicInfo').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Roll Number</label>
+                        <p class="text-gray-800">${currentStudent.rollNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Department</label>
+                        <p class="text-gray-800">${currentStudent.department || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Batch</label>
+                        <p class="text-gray-800">${currentStudent.batch || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Semester</label>
+                        <p class="text-gray-800">${currentStudent.semester || 'N/A'}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Week navigation
+        function previousWeek() {
+            currentWeek--;
+            updateWeekDisplay();
+        }
+        
+        function nextWeek() {
+            currentWeek++;
+            updateWeekDisplay();
+        }
+        
+        function updateWeekDisplay() {
+            const today = new Date();
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay() + 1 + (currentWeek * 7));
+            
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            document.getElementById('currentWeek').textContent = 
+                `Week of ${weekStart.toLocaleDateString('en-US', options)}`;
+        }
+        
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html>
